@@ -7,29 +7,20 @@ import {
   Param,
   Delete,
   Put,
+  UsePipes,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { ValidationPipe } from '@nestjs/common';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
+  @UsePipes(new ValidationPipe())
   async create(@Body() createUserDto: CreateUserDto) {
-    console.log('Body: ', createUserDto);
     return this.usersService.create(createUserDto);
-  }
-
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
-  }
-
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.usersService.findOne(+id);
   }
 
   @Put(':id')

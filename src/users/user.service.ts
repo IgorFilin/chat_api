@@ -13,7 +13,6 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    console.log('create user');
     const user = User.createUser(createUserDto);
     return this.UserTable.save(user);
   }
