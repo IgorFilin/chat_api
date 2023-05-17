@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -13,16 +13,15 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const user = User.createUser(createUserDto);
-    return this.UserTable.save(user);
-  }
-
-  findAll() {
-    return `This action returns all users`;
-  }
-
-  findOne(id: number) {
-    return `This action returns a #${id} user`;
+    const email = await this.UserTable.findOneBy({
+      email: createUserDto.email,
+    });
+    if (email) {
+      throw new BadRequestException('К сожалению такая почта уже существует');
+    } else {
+      const user = User.createUser(createUserDto);
+      return this.UserTable.save(user);
+    }
   }
 
   async update(id: string, name: string) {
