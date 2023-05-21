@@ -2,13 +2,13 @@ import {
   IsEmail,
   MinLength,
   IsString,
-  isEmail,
+  IsNotEmpty,
   Validate,
+  isEmail,
 } from 'class-validator';
 import { IsAllowedDomain } from '../validators/email';
 
 export class CreateUserDto {
-  @IsEmail({}, { message: 'Некорректный адрес электронной почты' })
   @Validate(IsAllowedDomain)
   email: string;
 

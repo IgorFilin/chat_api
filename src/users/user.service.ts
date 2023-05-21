@@ -13,15 +13,17 @@ export class UsersService {
   ) {}
 
   async create(createUserDto: CreateUserDto) {
-    const email = await this.UserTable.findOneBy({
-      email: createUserDto.email,
-    });
-    if (email) {
-      throw new BadRequestException('К сожалению такая почта уже существует');
-    } else {
-      const user = User.createUser(createUserDto);
-      return this.UserTable.save(user);
-    }
+    try {
+      const email = await this.UserTable.findOneBy({
+        email: createUserDto.email,
+      });
+      if (email) {
+        throw new BadRequestException('К сожалению такая почта уже существует');
+      } else {
+        const user = User.createUser(createUserDto);
+        return this.UserTable.save(user);
+      }
+    } catch (e) {}
   }
 
   async update(id: string, name: string) {
