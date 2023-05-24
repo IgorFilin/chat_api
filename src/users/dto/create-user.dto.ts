@@ -1,11 +1,4 @@
-import {
-  IsEmail,
-  MinLength,
-  IsString,
-  IsNotEmpty,
-  Validate,
-  isEmail,
-} from 'class-validator';
+import { MinLength, IsString, Validate } from 'class-validator';
 import { IsAllowedDomain } from '../validators/email';
 
 export class CreateUserDto {

@@ -1,5 +1,4 @@
 import {
-  IsEmail,
   ValidationArguments,
   ValidatorConstraint,
   ValidatorConstraintInterface,

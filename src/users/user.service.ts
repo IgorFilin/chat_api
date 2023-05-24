@@ -35,4 +35,8 @@ export class UsersService {
   async remove(id: string) {
     return this.UserTable.delete({ id });
   }
+
+  async get(id: string) {
+    return this.UserTable.findOneBy({ id });
+  }
 }

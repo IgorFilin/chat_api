@@ -17,6 +17,11 @@ import { ValidationPipe } from '@nestjs/common';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
+  @Get(':id')
+  async get(@Param('id') id: string) {
+    return this.usersService.get(id);
+  }
+
   @Post()
   @UsePipes(new ValidationPipe())
   async create(@Body() createUserDto: CreateUserDto) {
