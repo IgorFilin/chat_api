@@ -5,6 +5,7 @@ import {
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { CreateUserDto } from '../dto/create-user.dto';
+import * as bcrypt from 'bcryptjs';
 
 @Entity('Users')
 export class User {
@@ -23,11 +24,13 @@ export class User {
   @CreateDateColumn()
   date: Date;
 
-  static createUser(dataUser: CreateUserDto) {
+  static async createUser(dataUser: CreateUserDto) {
+    const salt = await bcrypt.genSalt();
+    const hashedPassword = await bcrypt.hash(dataUser.password, salt);
     const user = new User();
     user.name = dataUser.name;
     user.email = dataUser.email;
-    user.password = dataUser.password;
+    user.password = hashedPassword;
     user.date = new Date();
     return user;
   }

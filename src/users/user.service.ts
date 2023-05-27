@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
@@ -20,7 +19,7 @@ export class UsersService {
       if (email) {
         throw new BadRequestException('К сожалению такая почта уже существует');
       } else {
-        const user = User.createUser(createUserDto);
+        const user = await User.createUser(createUserDto);
         return this.UserTable.save(user);
       }
     } catch (e) {}

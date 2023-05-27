@@ -4,5 +4,5 @@ export class CreateAuthDto {
   password: string;
 
   @IsString()
-  name: string;
+  email: string;
 }
