@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Request } from '@nestjs/common';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
@@ -18,8 +18,14 @@ export class AuthService {
         'К сожалению недостаточно данных для авторизации',
       );
     }
-    const user = await this.UserTable.findBy({ email: createAuthDto.email });
-    if (user.length) {
+    const user = await this.UserTable.findOneBy({ email: createAuthDto.email });
+    if (user && Object.keys(user).length) {
+      const temp = await bcrypt.compare(createAuthDto.password, user.password);
+      if (temp) {
+        return { message: `Добро пожаловать ${user.name}` };
+      } else {
+        throw new BadRequestException('Неверный пароль');
+      }
     } else {
       throw new BadRequestException(
         'К сожалению такого пользователя не существует',
