@@ -3,17 +3,20 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
   Delete,
   Put,
   UsePipes,
+  Res,
+  Req,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 import { ValidationPipe } from '@nestjs/common';
+import { Response, Request } from 'express';
 
-@Controller('users')
+@Controller('user')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -22,10 +25,23 @@ export class UsersController {
     return this.usersService.get(id);
   }
 
-  @Post()
+  @Post('registration')
   @UsePipes(new ValidationPipe())
   async create(@Body() createUserDto: CreateUserDto) {
     return this.usersService.create(createUserDto);
+  }
+
+  @Post('login')
+  async login(@Body() LoginUserDto: LoginUserDto, @Res() res: Response) {
+    const result = await this.usersService.login(LoginUserDto);
+    res.cookie('authToken', '123123', {
+      path: '/',
+      httpOnly: true,
+      expires: new Date(new Date().getTime() + 30 * 1000),
+      sameSite: 'strict',
+      secure: false,
+    });
+    return res.send(result);
   }
 
   @Put(':id')

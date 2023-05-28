@@ -1,8 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, Res } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
+import { LoginUserDto } from './dto/login-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import * as bcrypt from 'bcryptjs';
 
 @Injectable()
 export class UsersService {
@@ -29,6 +31,30 @@ export class UsersService {
     const user = await this.UserTable.findOneBy({ id });
     user.changeNameUser(name);
     return this.UserTable.save(user);
+  }
+
+  async login(LoginUserDto: LoginUserDto) {
+    if (LoginUserDto.email === '' || LoginUserDto.password === '') {
+      throw new BadRequestException(
+        'К сожалению недостаточно данных для авторизации',
+      );
+    }
+    const user = await this.UserTable.findOneBy({ email: LoginUserDto.email });
+    if (user && Object.keys(user).length) {
+      const userPasswordValid = await bcrypt.compare(
+        LoginUserDto.password,
+        user.password,
+      );
+      if (userPasswordValid) {
+        return { message: `Добро пожаловать ${user.name}` };
+      } else {
+        throw new BadRequestException('Неверный пароль');
+      }
+    } else {
+      throw new BadRequestException(
+        'К сожалению такого пользователя не существует',
+      );
+    }
   }
 
   async remove(id: string) {
