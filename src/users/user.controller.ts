@@ -37,7 +37,7 @@ export class UsersController {
     res.cookie('authToken', '123123', {
       path: '/',
       httpOnly: true,
-      expires: new Date(new Date().getTime() + 30 * 1000),
+      expires: new Date(new Date().getTime() + 3),
       sameSite: 'strict',
       secure: false,
     });
