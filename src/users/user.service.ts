@@ -46,7 +46,7 @@ export class UsersService {
         user.password,
       );
       if (userPasswordValid) {
-        return { message: `Добро пожаловать ${user.name}` };
+        return { message: `Добро пожаловать ${user.name}`, name: user.name };
       } else {
         throw new BadRequestException('Неверный пароль');
       }
