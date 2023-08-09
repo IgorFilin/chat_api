@@ -4,6 +4,7 @@ import { LoginUserDto } from './dto/login-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
+import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 
 @Injectable()
@@ -11,6 +12,7 @@ export class UsersService {
   constructor(
     @InjectRepository(User)
     private UserTable: Repository<User>,
+    private JwtService: JwtService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -63,5 +65,10 @@ export class UsersService {
 
   async get(id: string) {
     return this.UserTable.findOneBy({ id });
+  }
+
+  async createToken(payload: LoginUserDto) {
+    const token = this.JwtService.sign(payload);
+    return token;
   }
 }
