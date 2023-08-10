@@ -35,7 +35,11 @@ export class UsersController {
   async login(@Body() LoginUserDto: LoginUserDto, @Res() res: Response) {
     const result = await this.usersService.login(LoginUserDto);
     const token = await this.usersService.createToken(LoginUserDto);
-    res.cookie('authToken', token);
+
+    const expirationDate = new Date();
+    expirationDate.setDate(expirationDate.getDate() + 3);
+
+    res.cookie('authToken', token, { httpOnly: true, expires: expirationDate });
     return res.send(result);
   }
 
