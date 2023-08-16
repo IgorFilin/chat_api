@@ -11,7 +11,7 @@ export class cookieMiddleware implements NestMiddleware {
     //  try{
     //   // const decodedToken = this.jwtService.verify(token)
     //  }
-    console.log('set');
+
     next();
   }
 }

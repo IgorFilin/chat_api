@@ -29,12 +29,6 @@ export class UsersService {
     } catch (e) {}
   }
 
-  async update(id: string, name: string) {
-    const user = await this.UserTable.findOneBy({ id });
-    user.changeNameUser(name);
-    return this.UserTable.save(user);
-  }
-
   async login(LoginUserDto: LoginUserDto) {
     if (LoginUserDto.email === '' || LoginUserDto.password === '') {
       throw new BadRequestException(
@@ -57,14 +51,6 @@ export class UsersService {
         'К сожалению такого пользователя не существует',
       );
     }
-  }
-
-  async remove(id: string) {
-    return this.UserTable.delete({ id });
-  }
-
-  async get(id: string) {
-    return this.UserTable.findOneBy({ id });
   }
 
   async createToken(payload: LoginUserDto) {

@@ -20,11 +20,6 @@ import { Response, Request } from 'express';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Get(':id')
-  async get(@Param('id') id: string) {
-    return this.usersService.get(id);
-  }
-
   @Post('registration')
   @UsePipes(new ValidationPipe())
   async create(@Body() createUserDto: CreateUserDto) {
@@ -43,13 +38,11 @@ export class UsersController {
     return res.send(result);
   }
 
-  @Put(':id')
-  async update(@Param('id') id: string, @Body('name') name: string) {
-    return this.usersService.update(id, name);
-  }
-
-  @Delete(':id')
-  async remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+  @Get('auth')
+  async auth(@Req() req: Request, @Res() res: Response) {
+    let isAuth;
+    req.cookies.authToken ? (isAuth = true) : (isAuth = false);
+    res.send({ isAuth });
+    console.log(req.cookies.authToken);
   }
 }
