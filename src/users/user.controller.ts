@@ -43,6 +43,11 @@ export class UsersController {
     let isAuth;
     req.cookies.authToken ? (isAuth = true) : (isAuth = false);
     res.send({ isAuth });
-    console.log(req.cookies.authToken);
+  }
+
+  @Get('logout')
+  async logout(@Req() req: Request, @Res() res: Response) {
+    res.clearCookie('authToken');
+    res.send({ isAuth: false });
   }
 }
