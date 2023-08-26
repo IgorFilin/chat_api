@@ -34,8 +34,4 @@ export class User {
     user.date = new Date();
     return user;
   }
-
-  changeNameUser(name: string) {
-    this.name = name;
-  }
 }

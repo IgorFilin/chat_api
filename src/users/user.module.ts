@@ -5,6 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { cookieMiddleware } from 'src/middleware/cookie.middleware';
+import { MailModule } from 'src/mail/mail.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { cookieMiddleware } from 'src/middleware/cookie.middleware';
         expiresIn: '1h', // Время жизни токена
       },
     }),
+    MailModule,
   ], // соединение с базой данных
   controllers: [UsersController],
   providers: [UsersService],
