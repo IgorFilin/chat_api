@@ -23,7 +23,6 @@ export class UsersController {
   @Post('registration')
   @UsePipes(new ValidationPipe())
   async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
-    // res.cookie('email', createUserDto.email);
     const result = await this.usersService.create(createUserDto);
     return res.send(result);
   }
@@ -51,5 +50,10 @@ export class UsersController {
   async logout(@Req() req: Request, @Res() res: Response) {
     res.clearCookie('authToken');
     res.send({ isAuth: false });
+  }
+
+  @Get('confirm')
+  async confirm(@Req() req: Request, @Res() res: Response) {
+    console.log(req.query);
   }
 }
