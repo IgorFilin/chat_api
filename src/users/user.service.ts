@@ -2,10 +2,13 @@ import { BadRequestException, Injectable, Res } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
+import { randomBytes } from 'crypto';
 import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
+import { StateService } from 'src/state/state.service';
+import { EmailService } from 'src/email/email.service';
 
 @Injectable()
 export class UsersService {
@@ -13,6 +16,8 @@ export class UsersService {
     @InjectRepository(User)
     private UserTable: Repository<User>,
     private JwtService: JwtService,
+    private stateService: StateService,
+    private readonly emailService: EmailService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {
@@ -24,8 +29,20 @@ export class UsersService {
         throw new BadRequestException('К сожалению такая почта уже существует');
       } else {
         const user = await User.createUser(createUserDto);
-        return this.UserTable.save(user);
+
+        // this.UserTable.save(user);
+        await this.emailService.sendConfirmationEmail(user.email, '123123');
+        const confirmRegKey = randomBytes(5).toString('hex');
+        this.stateService.setState(user.email, { ...user, confirmRegKey });
+        return { isRegConfirm: true };
       }
+    } catch (e) {}
+  }
+
+  async confirmRegistration(key: string) {
+    try {
+      //  const user = this.stateService.getState()
+      //  if(key ===)
     } catch (e) {}
   }
 

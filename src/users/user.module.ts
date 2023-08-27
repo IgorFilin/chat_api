@@ -6,6 +6,7 @@ import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { cookieMiddleware } from 'src/middleware/cookie.middleware';
 import { EmailService } from 'src/email/email.service';
+import { StateService } from 'src/state/state.service';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { EmailService } from 'src/email/email.service';
     }),
   ], // соединение с базой данных
   controllers: [UsersController],
-  providers: [UsersService, EmailService],
+  providers: [UsersService, EmailService, StateService],
 })
 export class UsersModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
