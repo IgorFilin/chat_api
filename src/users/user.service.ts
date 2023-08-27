@@ -6,7 +6,6 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { MailerService } from '@nestjs-modules/mailer';
 
 @Injectable()
 export class UsersService {
@@ -14,7 +13,6 @@ export class UsersService {
     @InjectRepository(User)
     private UserTable: Repository<User>,
     private JwtService: JwtService,
-    private readonly mailerService: MailerService,
   ) {}
 
   async create(createUserDto: CreateUserDto) {

@@ -15,19 +15,22 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ValidationPipe } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { MailService } from 'src/mail/mail.service';
+import { EmailService } from 'src/email/email.service';
 
 @Controller('user')
 export class UsersController {
   constructor(
     private readonly usersService: UsersService,
-    private readonly mailService: MailService,
+    private readonly emailService: EmailService,
   ) {}
 
   @Post('registration')
   @UsePipes(new ValidationPipe())
   async create(@Body() createUserDto: CreateUserDto) {
-    await this.mailService.sendUserConfirmation(createUserDto);
+    await this.emailService.sendConfirmationEmail(
+      'filinigor@yandex.ru',
+      '123123',
+    );
     return this.usersService.create(createUserDto);
   }
 
