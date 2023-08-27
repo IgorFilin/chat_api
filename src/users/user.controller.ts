@@ -23,8 +23,9 @@ export class UsersController {
   @Post('registration')
   @UsePipes(new ValidationPipe())
   async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
-    res.cookie('email', createUserDto.email);
-    return this.usersService.create(createUserDto);
+    // res.cookie('email', createUserDto.email);
+    const result = await this.usersService.create(createUserDto);
+    return res.send(result);
   }
 
   @Post('login')

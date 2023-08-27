@@ -28,12 +28,28 @@ export class UsersService {
       if (email) {
         throw new BadRequestException('К сожалению такая почта уже существует');
       } else {
-        const user = await User.createUser(createUserDto);
-
-        // this.UserTable.save(user);
-        await this.emailService.sendConfirmationEmail(user.email, '123123');
+        const salt = await bcrypt.genSalt();
+        const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
         const confirmRegKey = randomBytes(5).toString('hex');
-        this.stateService.setState(user.email, { ...user, confirmRegKey });
+
+        //Создаем пользователя по сущности
+        const user = new User();
+        user.name = createUserDto.name;
+        user.email = createUserDto.email;
+        user.password = hashedPassword;
+        user.date = new Date();
+        user.isAcceptKey = confirmRegKey;
+
+        //Сохраняем в БД пользователя с регистрационным key
+        this.UserTable.save(user);
+
+        //Отсылаем на почту ключ подтверждения
+        await this.emailService.sendConfirmationEmail(
+          user.email,
+          confirmRegKey,
+        );
+
+        //Возвращаем значение что ключ на почту отправлен
         return { isRegConfirm: true };
       }
     } catch (e) {}
