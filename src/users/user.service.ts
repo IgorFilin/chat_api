@@ -22,11 +22,11 @@ export class UsersService {
 
   async create(createUserDto: CreateUserDto) {
     try {
-      const email = await this.UserTable.findOneBy({
+      const findUser = await this.UserTable.findOneBy({
         email: createUserDto.email,
       });
-      if (email) {
-        throw new BadRequestException('К сожалению такая почта уже существует');
+      if (findUser) {
+        return { message: 'К сожалению такая почта уже существует' };
       } else {
         const salt = await bcrypt.genSalt();
         const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
@@ -50,15 +50,26 @@ export class UsersService {
         );
 
         //Возвращаем значение что ключ на почту отправлен
-        return { isRegConfirm: true };
+        return {
+          isRegConfirm: true,
+          message: `Приветствую ${user.name}, пожалуйста введи код подтверждения`,
+        };
       }
     } catch (e) {}
   }
 
   async confirmRegistration(key: string) {
     try {
-      //  const user = this.stateService.getState()
-      //  if(key ===)
+      const acceptUser = await this.UserTable.findOneBy({ isAcceptKey: key });
+      if (acceptUser) {
+        return {
+          user: acceptUser,
+          name: acceptUser.name,
+          message: `Добро пожаловать ${acceptUser.name}`,
+        };
+      } else {
+        return { message: 'К сожалению код не верный, попробуйте ещё раз' };
+      }
     } catch (e) {}
   }
 

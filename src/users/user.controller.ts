@@ -24,7 +24,11 @@ export class UsersController {
   @UsePipes(new ValidationPipe())
   async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     const result = await this.usersService.create(createUserDto);
-    return res.send(result);
+    if (result.isRegConfirm) {
+      return res.send(result);
+    } else {
+      return res.status(401).send({ message: result.message });
+    }
   }
 
   @Post('login')
@@ -41,7 +45,7 @@ export class UsersController {
 
   @Get('auth')
   async auth(@Req() req: Request, @Res() res: Response) {
-    let isAuth;
+    let isAuth: boolean;
     req.cookies.authToken ? (isAuth = true) : (isAuth = false);
     res.send({ isAuth });
   }
@@ -54,6 +58,25 @@ export class UsersController {
 
   @Get('confirm')
   async confirm(@Req() req: Request, @Res() res: Response) {
-    console.log(req.query);
+    const key: any = req.query.key;
+    const result = await this.usersService.confirmRegistration(key);
+
+    if (result.user) {
+      const token = await this.usersService.createToken({
+        password: result.user.password,
+        email: result.user.email,
+      });
+
+      const expirationDate = new Date();
+      expirationDate.setDate(expirationDate.getDate() + 3);
+
+      res.cookie('authToken', token, {
+        httpOnly: true,
+        expires: expirationDate,
+      });
+      res.send({ name: result.name, message: result.message });
+    } else {
+      res.send({ message: result.message });
+    }
   }
 }
