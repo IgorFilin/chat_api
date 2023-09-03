@@ -7,8 +7,7 @@ import { UsersModule } from './users/user.module';
 import { User } from './users/entities/user.entity';
 import { EmailService } from './email/email.service';
 import { StateService } from './state/state.service';
-import { WebsocketService } from './websocket/websocket.service';
-import { WebsocketModule } from './websocket/websocket.module';
+import { AppGateway } from './app/app.gateway';
 
 @Module({
   imports: [
@@ -28,9 +27,8 @@ import { WebsocketModule } from './websocket/websocket.module';
       inject: [ConfigService],
     }),
     UsersModule,
-    WebsocketModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService, StateService, WebsocketService],
+  providers: [AppService, EmailService, StateService, AppGateway],
 })
 export class AppModule {}
