@@ -19,7 +19,7 @@ export class AppGateway
   private logger: Logger = new Logger('AppGateway');
 
   @SubscribeMessage('msgToServer')
-  handleMessage(client: Socket, payload: string): void {
+  async handleMessage(client: Socket, payload: string) {
     console.log(client);
     console.log(payload);
     this.server.emit('msgToClient', payload); // отправляем данные всем подключенным клиентам
