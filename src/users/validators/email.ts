@@ -14,9 +14,12 @@ export class IsAllowedDomain implements ValidatorConstraintInterface {
     const [, domain] = email.split('@');
     args.constraints = [];
     // Проверяем, допустим ли домен
-    const isAllowedDomain = ['google.com', 'yandex.ru', 'mail.ru'].includes(
-      domain,
-    );
+    const isAllowedDomain = [
+      'google.com',
+      'yandex.ru',
+      'mail.ru',
+      'gmail.com',
+    ].includes(domain);
     return isAllowedDomain;
   }
 

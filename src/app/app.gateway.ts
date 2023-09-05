@@ -16,12 +16,11 @@ export class AppGateway
   @WebSocketServer()
   server: Server;
 
-  private logger: Logger = new Logger('AppGateway');
+  private logger: Logger = new Logger('msgToClient');
 
   @SubscribeMessage('msgToServer')
   async handleMessage(client: Socket, payload: string) {
-    console.log(client);
-    console.log(payload);
+    console.log('123123');
     this.server.emit('msgToClient', payload); // отправляем данные всем подключенным клиентам
   }
 

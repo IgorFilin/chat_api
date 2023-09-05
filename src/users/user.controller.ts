@@ -24,7 +24,7 @@ export class UsersController {
   @UsePipes(new ValidationPipe())
   async create(@Body() createUserDto: CreateUserDto, @Res() res: Response) {
     const result = await this.usersService.create(createUserDto);
-    if (result.isRegConfirm) {
+    if (result?.isRegConfirm) {
       return res.send(result);
     } else {
       return res.status(401).send({ message: result.message });
