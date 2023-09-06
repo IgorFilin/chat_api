@@ -8,12 +8,13 @@ import { User } from './users/entities/user.entity';
 import { EmailService } from './email/email.service';
 import { StateService } from './state/state.service';
 import { AppGateway } from './app/app.gateway';
+import { GateWayModule } from './app/app.gateway.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule, GateWayModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('BD_HOST'),
@@ -29,6 +30,6 @@ import { AppGateway } from './app/app.gateway';
     UsersModule,
   ],
   controllers: [AppController],
-  providers: [AppService, EmailService, StateService, AppGateway],
+  providers: [AppService, EmailService, StateService],
 })
 export class AppModule {}

@@ -5,26 +5,25 @@ import {
   WebSocketServer,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  MessageBody,
 } from '@nestjs/websockets';
 import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
-
 @WebSocketGateway()
-export class AppGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export class AppGateway {
   @WebSocketServer()
   server: Server;
 
-  private logger: Logger = new Logger('msgToClient');
+  private logger: Logger = new Logger('WebSocket');
 
-  @SubscribeMessage('msgToServer')
-  async handleMessage(client: Socket, payload: string) {
-    console.log('123123');
-    this.server.emit('msgToClient', payload); // отправляем данные всем подключенным клиентам
+  @SubscribeMessage('message')
+  handleMessage(@MessageBody() body: any) {
+    console.log(body);
+    this.server.emit('message', '123123'); // отправляем данные всем подключенным клиентам
   }
 
   afterInit(server: Server) {
+    console.log('Init');
     this.logger.log('Init');
   }
 
@@ -34,7 +33,7 @@ export class AppGateway
   }
 
   handleConnection(client: Socket, ...args: any[]) {
-    console.log(`Client disconnected: ${client.id}`);
+    console.log(`Client connected: ${client.id}`);
     this.logger.log(`Client connected: ${client.id}`);
   }
 }

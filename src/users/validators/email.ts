@@ -19,6 +19,7 @@ export class IsAllowedDomain implements ValidatorConstraintInterface {
       'yandex.ru',
       'mail.ru',
       'gmail.com',
+      'bk.ru',
     ].includes(domain);
     return isAllowedDomain;
   }
