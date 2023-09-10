@@ -32,13 +32,18 @@ export class UsersService {
         const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
         const confirmRegKey = randomBytes(5).toString('hex');
 
-        //Создаем пользователя по сущности
+        const token = this.JwtService.sign({
+          name: createUserDto.name,
+          password: createUserDto.password,
+        });
+        // Создаем пользователя по сущности
         const user = new User();
         user.name = createUserDto.name;
         user.email = createUserDto.email;
         user.password = hashedPassword;
         user.date = new Date();
         user.isAcceptKey = confirmRegKey;
+        user.authToken = token;
 
         //Сохраняем в БД пользователя с регистрационным key
         this.UserTable.save(user);
@@ -65,6 +70,7 @@ export class UsersService {
         return {
           user: acceptUser,
           name: acceptUser.name,
+          token: acceptUser.authToken,
           message: `Добро пожаловать ${acceptUser.name}`,
         };
       } else {
@@ -86,7 +92,11 @@ export class UsersService {
         user.password,
       );
       if (userPasswordValid) {
-        return { message: `Добро пожаловать ${user.name}`, name: user.name };
+        return {
+          message: `Добро пожаловать ${user.name}`,
+          name: user.name,
+          token: user.authToken,
+        };
       } else {
         throw new BadRequestException('Неверный пароль');
       }
@@ -97,8 +107,17 @@ export class UsersService {
     }
   }
 
-  async createToken(payload: LoginUserDto) {
-    const token = this.JwtService.sign(payload);
-    return token;
+  async confirmToken(requestToken: any) {
+    if (!requestToken) {
+      return { isAuth: false };
+    }
+    try {
+      const user = await this.UserTable.findOneByOrFail({
+        authToken: requestToken,
+      });
+      return { name: user.name, token: user.authToken, isAuth: true };
+    } catch (error) {
+      return { isAuth: false };
+    }
   }
 }

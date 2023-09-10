@@ -22,6 +22,9 @@ export class User {
   @Column()
   isAcceptKey: string;
 
+  @Column()
+  authToken: string;
+
   @CreateDateColumn()
   date: Date;
 }

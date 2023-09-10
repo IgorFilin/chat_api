@@ -34,20 +34,28 @@ export class UsersController {
   @Post('login')
   async login(@Body() LoginUserDto: LoginUserDto, @Res() res: Response) {
     const result = await this.usersService.login(LoginUserDto);
-    const token = await this.usersService.createToken(LoginUserDto);
 
     const expirationDate = new Date();
     expirationDate.setDate(expirationDate.getDate() + 3);
 
-    res.cookie('authToken', token, { httpOnly: true, expires: expirationDate });
+    res.cookie('authToken', result.token, {
+      httpOnly: true,
+      expires: expirationDate,
+    });
     return res.send(result);
   }
 
   @Get('auth')
   async auth(@Req() req: Request, @Res() res: Response) {
-    let isAuth: boolean;
-    req.cookies.authToken ? (isAuth = true) : (isAuth = false);
-    res.send({ isAuth });
+    // let isAuth: boolean;
+    // req.cookies.authToken ? (isAuth = true) : (isAuth = false);
+    // res.send({ isAuth });
+    const result = await this.usersService.confirmToken(req.cookies.authToken);
+    const resultObject: any = { isAuth: result?.isAuth };
+    if (result?.isAuth) {
+      resultObject.name = result.name;
+    }
+    res.send(resultObject);
   }
 
   @Get('logout')
@@ -62,15 +70,9 @@ export class UsersController {
     const result = await this.usersService.confirmRegistration(key);
 
     if (result.user) {
-      const token = await this.usersService.createToken({
-        password: result.user.password,
-        email: result.user.email,
-      });
-
       const expirationDate = new Date();
       expirationDate.setDate(expirationDate.getDate() + 3);
-
-      res.cookie('authToken', token, {
+      res.cookie('authToken', result.token, {
         httpOnly: true,
         expires: expirationDate,
       });
