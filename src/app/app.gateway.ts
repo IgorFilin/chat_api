@@ -14,7 +14,6 @@ export class AppGateway {
   @WebSocketServer()
   server: Server;
   clients = [];
-  private logger: Logger = new Logger('WebSocket');
 
   broadcastMessage(payload: any) {
     for (const client of this.clients) {
@@ -25,23 +24,20 @@ export class AppGateway {
 
   @SubscribeMessage('message')
   handleMessage(@MessageBody() body: any) {
-    console.log(body);
     this.broadcastMessage(body); // отправляем данные всем подключенным клиентам
   }
 
-  afterInit(server: Server) {
-    console.log('Init');
-    this.logger.log('Init');
+  @SubscribeMessage('token')
+  setUserId(id: any) {
+    console.log(id.data);
   }
 
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected: ${client.id}`);
-    this.logger.log(`Client disconnected: ${client.id}`);
   }
 
   handleConnection(client: Socket, ...args: any[]) {
     this.clients.push(client);
-    console.log(`Client connected: ${client.id}`);
-    this.logger.log(`Client connected: ${client.id}`);
+    console.log(client);
   }
 }
