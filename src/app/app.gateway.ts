@@ -17,13 +17,18 @@ export class AppGateway {
 
   broadcastMessage(payload: any) {
     for (const client of this.clients) {
-      const message = JSON.stringify(payload);
-      client.send(message);
+      const sendData = { message: payload.message, userId: '' };
+      if (payload.id === client.id) {
+        sendData.userId = payload.id;
+      }
+      const message = JSON.stringify(sendData);
+      client.client.send(message);
     }
   }
 
   @SubscribeMessage('message')
   handleMessage(@MessageBody() body: any) {
+    console.log(body);
     this.broadcastMessage(body); // отправляем данные всем подключенным клиентам
   }
 
@@ -33,11 +38,14 @@ export class AppGateway {
   }
 
   handleDisconnect(client: Socket) {
-    console.log(`Client disconnected: ${client.id}`);
+    console.log(`Client disconnected`);
   }
 
-  handleConnection(client: Socket, ...args: any[]) {
-    this.clients.push(client);
-    console.log(client);
+  handleConnection(client: Socket, ...args: any) {
+    const url = new URLSearchParams(args[0].url);
+    const userId = url.get('/?userID');
+    this.clients.push({ id: userId, client });
+    console.log(`Client connected`);
+    console.log(this.clients);
   }
 }
