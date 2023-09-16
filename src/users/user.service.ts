@@ -96,6 +96,7 @@ export class UsersService {
           message: `Добро пожаловать ${user.name}`,
           name: user.name,
           token: user.authToken,
+          isAuth: true,
         };
       } else {
         throw new BadRequestException('Неверный пароль');
