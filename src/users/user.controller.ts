@@ -3,9 +3,6 @@ import {
   Get,
   Post,
   Body,
-  Param,
-  Delete,
-  Put,
   UsePipes,
   Res,
   Req,
@@ -57,12 +54,18 @@ export class UsersController {
     res.send(resultObject);
   }
 
-  @Post('avatar')
+  @Get('avatar')
   async getAvatar(@Req() req: Request, @Res() res: Response) {
-    const image = req.body.image;
+    const image = '';
     image ? image : 'default_photo_user.webp';
     const dirname = process.cwd();
-    const imagePath = path.join(dirname, 'dist', 'static', 'image', image);
+    const imagePath = path.join(
+      dirname,
+      'dist',
+      'static',
+      'image',
+      'default_photo_user.webp',
+    );
     res.sendFile(imagePath);
   }
 
