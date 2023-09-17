@@ -7,7 +7,6 @@ import {
 } from '@nestjs/websockets';
 import { Socket, Server } from 'socket.io';
 import { User } from 'src/users/entities/user.entity';
-import { UsersService } from 'src/users/user.service';
 import { Repository } from 'typeorm';
 @WebSocketGateway()
 export class AppGateway {
@@ -18,12 +17,13 @@ export class AppGateway {
   @WebSocketServer()
   server: Server;
   clients = [];
-
+  
   broadcastMessage(payload: any) {
     for (const client of this.clients) {
-      const sendData = { message: payload.message, userId: '' };
+      const sendData = { message: payload.message, userId: '', name: '' };
       if (payload.id === client.id) {
         sendData.userId = payload.id;
+        sendData.name = client.name;
       }
       const message = JSON.stringify(sendData);
       client.client.send(message);
@@ -43,12 +43,11 @@ export class AppGateway {
   async handleConnection(client: Socket, ...args: any) {
     const url = new URLSearchParams(args[0].url);
     const userId = url.get('/?userID');
-    this.clients.push({ id: userId, client });
+    const user = await this.UserTable.findOneBy({
+      id: userId,
+    });
+    this.clients.push({ id: userId, name: user.name, client });
     console.log(`Client connected`);
     console.log(this.clients);
-    const user = await this.UserTable.findOneBy({
-      email: 'filinigor@yandex.ru',
-    });
-    console.log(user);
   }
 }
