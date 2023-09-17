@@ -15,6 +15,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ValidationPipe } from '@nestjs/common';
 import { Response, Request } from 'express';
+import * as path from 'path';
 
 @Controller('user')
 export class UsersController {
@@ -54,6 +55,15 @@ export class UsersController {
       resultObject.id = result.id;
     }
     res.send(resultObject);
+  }
+
+  @Post('avatar')
+  async getAvatar(@Req() req: Request, @Res() res: Response) {
+    const image = req.body.image;
+    image ? image : 'default_photo_user.webp';
+    const dirname = process.cwd();
+    const imagePath = path.join(dirname, 'dist', 'static', 'image', image);
+    res.sendFile(imagePath);
   }
 
   @Get('logout')
