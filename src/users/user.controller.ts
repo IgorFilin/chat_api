@@ -56,8 +56,6 @@ export class UsersController {
 
   @Get('avatar')
   async getAvatar(@Req() req: Request, @Res() res: Response) {
-    const image = '';
-    image ? image : 'default_photo_user.webp';
     const dirname = process.cwd();
     const imagePath = path.join(
       dirname,

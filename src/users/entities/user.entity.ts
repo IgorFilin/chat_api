@@ -25,6 +25,9 @@ export class User {
   @Column()
   authToken: string;
 
+  @Column()
+  userPhoto: string;
+
   @CreateDateColumn()
   date: Date;
 }

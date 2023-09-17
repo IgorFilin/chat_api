@@ -17,14 +17,21 @@ export class AppGateway {
   @WebSocketServer()
   server: Server;
   clients = [];
-  
+
   broadcastMessage(payload: any) {
     for (const client of this.clients) {
-      const sendData = { message: payload.message, userId: '', name: '' };
+      const sendData = {
+        message: payload.message,
+        userId: '',
+        name: '',
+        userPhoto: '',
+      };
       if (payload.id === client.id) {
         sendData.userId = payload.id;
         sendData.name = client.name;
+        sendData.userPhoto = client.userPhoto;
       }
+      console.log(sendData);
       const message = JSON.stringify(sendData);
       client.client.send(message);
     }
@@ -46,7 +53,12 @@ export class AppGateway {
     const user = await this.UserTable.findOneBy({
       id: userId,
     });
-    this.clients.push({ id: userId, name: user.name, client });
+    this.clients.push({
+      id: userId,
+      name: user.name,
+      userPhoto: user.userPhoto,
+      client,
+    });
     console.log(`Client connected`);
     console.log(this.clients);
   }

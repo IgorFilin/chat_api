@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { StateService } from 'src/state/state.service';
 import { EmailService } from 'src/email/email.service';
+import * as path from 'path';
 
 @Injectable()
 export class UsersService {
@@ -32,6 +33,15 @@ export class UsersService {
         const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
         const confirmRegKey = randomBytes(5).toString('hex');
 
+        const dirname = process.cwd();
+        const imagePath = path.join(
+          dirname,
+          'dist',
+          'static',
+          'image',
+          'default_photo_user.webp',
+        );
+        console.log('123123');
         const token = this.JwtService.sign({
           name: createUserDto.name,
           password: createUserDto.password,
@@ -44,6 +54,7 @@ export class UsersService {
         user.date = new Date();
         user.isAcceptKey = confirmRegKey;
         user.authToken = token;
+        user.userPhoto = imagePath;
 
         //Сохраняем в БД пользователя с регистрационным key
         this.UserTable.save(user);
