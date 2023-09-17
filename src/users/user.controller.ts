@@ -47,13 +47,11 @@ export class UsersController {
 
   @Get('auth')
   async auth(@Req() req: Request, @Res() res: Response) {
-    // let isAuth: boolean;
-    // req.cookies.authToken ? (isAuth = true) : (isAuth = false);
-    // res.send({ isAuth });
     const result = await this.usersService.confirmToken(req.cookies.authToken);
     const resultObject: any = { isAuth: result?.isAuth };
     if (result?.isAuth) {
       resultObject.name = result.name;
+      resultObject.id = result.id;
     }
     res.send(resultObject);
   }
@@ -76,7 +74,7 @@ export class UsersController {
         httpOnly: true,
         expires: expirationDate,
       });
-      res.send({ name: result.name, message: result.message });
+      res.send({ name: result.name, message: result.message, id: result.id });
     } else {
       res.send({ message: result.message });
     }

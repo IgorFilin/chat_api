@@ -1,16 +1,20 @@
+import { InjectRepository } from '@nestjs/typeorm';
 import {
   SubscribeMessage,
   WebSocketGateway,
-  OnGatewayInit,
   WebSocketServer,
-  OnGatewayConnection,
-  OnGatewayDisconnect,
   MessageBody,
 } from '@nestjs/websockets';
-import { Logger } from '@nestjs/common';
 import { Socket, Server } from 'socket.io';
+import { User } from 'src/users/entities/user.entity';
+import { UsersService } from 'src/users/user.service';
+import { Repository } from 'typeorm';
 @WebSocketGateway()
 export class AppGateway {
+  constructor(
+    @InjectRepository(User)
+    private UserTable: Repository<User>,
+  ) {}
   @WebSocketServer()
   server: Server;
   clients = [];
@@ -32,20 +36,19 @@ export class AppGateway {
     this.broadcastMessage(body); // отправляем данные всем подключенным клиентам
   }
 
-  @SubscribeMessage('token')
-  setUserId(id: any) {
-    console.log(id.data);
-  }
-
   handleDisconnect(client: Socket) {
     console.log(`Client disconnected`);
   }
 
-  handleConnection(client: Socket, ...args: any) {
+  async handleConnection(client: Socket, ...args: any) {
     const url = new URLSearchParams(args[0].url);
     const userId = url.get('/?userID');
     this.clients.push({ id: userId, client });
     console.log(`Client connected`);
     console.log(this.clients);
+    const user = await this.UserTable.findOneBy({
+      email: 'filinigor@yandex.ru',
+    });
+    console.log(user);
   }
 }

@@ -71,6 +71,7 @@ export class UsersService {
           user: acceptUser,
           name: acceptUser.name,
           token: acceptUser.authToken,
+          id: acceptUser.authToken,
           message: `Добро пожаловать ${acceptUser.name}`,
         };
       } else {
@@ -97,6 +98,7 @@ export class UsersService {
           name: user.name,
           token: user.authToken,
           isAuth: true,
+          id: user.id,
         };
       } else {
         throw new BadRequestException('Неверный пароль');
@@ -116,7 +118,12 @@ export class UsersService {
       const user = await this.UserTable.findOneByOrFail({
         authToken: requestToken,
       });
-      return { name: user.name, token: user.authToken, isAuth: true };
+      return {
+        name: user.name,
+        token: user.authToken,
+        isAuth: true,
+        id: user.id,
+      };
     } catch (error) {
       return { isAuth: false };
     }
