@@ -8,6 +8,7 @@ import {
 import { Socket, Server } from 'socket.io';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
+import * as fs from 'node:fs';
 @WebSocketGateway()
 export class AppGateway {
   constructor(
@@ -24,22 +25,24 @@ export class AppGateway {
         message: payload.message,
         userId: '',
         name: '',
-        userPhoto: '',
+        userPhoto: null,
       };
-      if (payload.id === client.id) {
-        sendData.userId = payload.id;
-        sendData.name = client.name;
-        sendData.userPhoto = client.userPhoto;
-      }
-      console.log(sendData);
-      const message = JSON.stringify(sendData);
-      client.client.send(message);
+
+      fs.readFile(client.userPhoto, (err, data) => {
+        sendData.userPhoto = data;
+
+        if (payload.id === client.id) {
+          sendData.userId = payload.id;
+          sendData.name = client.name;
+        }
+        const message = JSON.stringify(sendData);
+        client.client.send(message);
+      });
     }
   }
 
   @SubscribeMessage('message')
   handleMessage(@MessageBody() body: any) {
-    console.log(body);
     this.broadcastMessage(body); // отправляем данные всем подключенным клиентам
   }
 
@@ -60,6 +63,5 @@ export class AppGateway {
       client,
     });
     console.log(`Client connected`);
-    console.log(this.clients);
   }
 }
