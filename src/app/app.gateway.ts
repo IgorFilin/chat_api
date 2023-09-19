@@ -19,7 +19,7 @@ export class AppGateway {
   server: Server;
   clients = [];
 
-  broadcastMessage(payload: any) {
+  async broadcastMessage(payload: any) {
     for (const client of this.clients) {
       const sendData = {
         message: payload.message,
@@ -27,17 +27,23 @@ export class AppGateway {
         name: '',
         userPhoto: null,
       };
-
-      fs.readFile(client.userPhoto, (err, data) => {
-        sendData.userPhoto = data;
-
-        if (payload.id === client.id) {
-          sendData.userId = payload.id;
-          sendData.name = client.name;
-        }
-        const message = JSON.stringify(sendData);
-        client.client.send(message);
+      const pr = new Promise((res, rej) => {
+        fs.readFile(client.userPhoto, 'base64', (err, data) => {
+          if (err) {
+            rej(0);
+          }
+          if (payload.id === client.id) {
+            sendData.userId = payload.id;
+            sendData.name = client.name;
+            sendData.userPhoto = data;
+          } else {
+          }
+          res(1);
+        });
       });
+      await pr;
+      const message = JSON.stringify(sendData);
+      client.client.send(message);
     }
   }
 

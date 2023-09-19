@@ -56,15 +56,9 @@ export class UsersController {
 
   @Get('avatar')
   async getAvatar(@Req() req: Request, @Res() res: Response) {
-    const dirname = process.cwd();
-    const imagePath = path.join(
-      dirname,
-      'dist',
-      'static',
-      'image',
-      'default_photo_user.webp',
-    );
-    res.sendFile(imagePath);
+    const token = req.cookies.authToken;
+    const result = await this.usersService.getPhoto(token);
+    res.sendFile(result);
   }
 
   @Get('logout')
