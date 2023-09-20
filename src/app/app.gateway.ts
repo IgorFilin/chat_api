@@ -23,21 +23,16 @@ export class AppGateway {
     for (const client of this.clients) {
       const sendData = {
         message: payload.message,
-        userId: '',
-        name: '',
-        userPhoto: null,
+        userId: payload.user.id,
+        name: payload.user.name,
+        userPhoto: '',
       };
       const pr = new Promise((res, rej) => {
-        fs.readFile(client.userPhoto, 'base64', (err, data) => {
+        fs.readFile(payload.user.userPhoto, 'base64', (err, data) => {
           if (err) {
             rej(0);
           }
-          if (payload.id === client.id) {
-            sendData.userId = payload.id;
-            sendData.name = client.name;
-            sendData.userPhoto = data;
-          } else {
-          }
+          sendData.userPhoto = data;
           res(1);
         });
       });
@@ -49,7 +44,10 @@ export class AppGateway {
 
   @SubscribeMessage('message')
   handleMessage(@MessageBody() body: any) {
-    this.broadcastMessage(body); // отправляем данные всем подключенным клиентам
+    const user = this.clients.find((user) => user.id === body.id);
+    const message = body.message;
+
+    this.broadcastMessage({ user, message }); // отправляем данные всем подключенным клиентам
   }
 
   handleDisconnect(client: Socket) {
