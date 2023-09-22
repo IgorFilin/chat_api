@@ -22,9 +22,9 @@ export class AppGateway {
   async broadcastMessage(payload: any) {
     for (const client of this.clients) {
       const sendData = {
-        message: payload.message,
+        message: payload.message.trim(),
         userId: payload.user.id,
-        name: payload.user.name,
+        name: payload.user.name.trim(),
         userPhoto: '',
       };
       const pr = new Promise((res, rej) => {
