@@ -157,15 +157,32 @@ export class UsersService {
     }
   }
 
-  async setPhoto(newAvatar) {
-    const dirname = process.cwd();
-    const savePath = path.join(
-      dirname,
-      'dist',
-      'static',
-      'image',
-      newAvatar.avatar.originalName,
-    );
-    fs.writeFile(savePath, newAvatar.avatar.buffer, () => {});
+  async setPhoto(userId: string, newAvatar: any) {
+    try {
+      // Сохраняем файл по дефолтному пути, в папку dist сборки проекта.
+      const dirname = process.cwd();
+      const savePath = path.join(
+        dirname,
+        'dist',
+        'static',
+        'image',
+        newAvatar.avatar.originalName,
+      );
+      fs.writeFile(savePath, newAvatar.avatar.buffer, () => {});
+
+      // Заменяем у пользователя путь к аварке в БД на новый
+      // Ищем пользователя
+      const user = await this.UserTable.findOneBy({
+        id: userId,
+      });
+
+      // Если id пользователя равен id найденного пользоваетля, проверка на всякий случай
+      if (user.id === userId) {
+        user.userPhoto = savePath;
+        this.UserTable.save(user);
+
+        return savePath;
+      }
+    } catch (e) {}
   }
 }

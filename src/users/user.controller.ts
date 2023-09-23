@@ -66,8 +66,14 @@ export class UsersController {
 
   @Post('avatar')
   @FormDataRequest({ storage: MemoryStoredFile })
-  async setAvatar(@Body() newAvatar: FormDataTestDto) {
-    const result = await this.usersService.setPhoto(newAvatar);
+  async setAvatar(
+    @Body() newAvatar: FormDataTestDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    const userId = req.query.id as string;
+    const result = await this.usersService.setPhoto(userId, newAvatar);
+    res.sendFile(result);
   }
 
   @Get('logout')
