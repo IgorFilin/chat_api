@@ -61,6 +61,11 @@ export class UsersController {
     res.sendFile(result);
   }
 
+  @Post('avatar')
+  async setAvatar(@Req() req: Request, @Res() res: Response) {
+    const result = await this.usersService.setPhoto(req.body);
+  }
+
   @Get('logout')
   async logout(@Req() req: Request, @Res() res: Response) {
     res.clearCookie('authToken');

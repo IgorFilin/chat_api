@@ -155,4 +155,8 @@ export class UsersService {
       return imagePath;
     }
   }
+
+  async setPhoto(formData) {
+    const data = formData;
+  }
 }
