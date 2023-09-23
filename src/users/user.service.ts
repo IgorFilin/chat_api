@@ -166,7 +166,6 @@ export class UsersService {
       'image',
       newAvatar.avatar.originalName,
     );
-    console.log();
-    fs.writeFileSync(savePath, newAvatar.avatar.buffer);
+    fs.writeFile(savePath, newAvatar.avatar.buffer, () => {});
   }
 }
