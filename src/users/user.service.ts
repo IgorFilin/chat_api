@@ -9,6 +9,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { StateService } from 'src/state/state.service';
 import { EmailService } from 'src/email/email.service';
+import * as fs from 'node:fs';
 import * as path from 'path';
 
 @Injectable()
@@ -156,7 +157,16 @@ export class UsersService {
     }
   }
 
-  async setPhoto(formData) {
-    const data = formData;
+  async setPhoto(newAvatar) {
+    const dirname = process.cwd();
+    const savePath = path.join(
+      dirname,
+      'dist',
+      'static',
+      'image',
+      newAvatar.avatar.originalName,
+    );
+    console.log();
+    fs.writeFileSync(savePath, newAvatar.avatar.buffer);
   }
 }

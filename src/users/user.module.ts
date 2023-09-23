@@ -7,6 +7,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { cookieMiddleware } from 'src/middleware/cookie.middleware';
 import { EmailService } from 'src/email/email.service';
 import { StateService } from 'src/state/state.service';
+import { MemoryStoredFile, NestjsFormDataModule } from 'nestjs-form-data';
 
 @Module({
   imports: [
@@ -17,7 +18,12 @@ import { StateService } from 'src/state/state.service';
         expiresIn: '1h', // Время жизни токена
       },
     }),
-  ], // соединение с базой данных
+    NestjsFormDataModule.configAsync({
+      useFactory: () => ({
+        storage: MemoryStoredFile,
+      }),
+    }),
+  ],
   controllers: [UsersController],
   providers: [UsersService, EmailService, StateService],
 })

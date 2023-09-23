@@ -6,13 +6,16 @@ import {
   UsePipes,
   Res,
   Req,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { LoginUserDto } from './dto/login-user.dto';
 import { ValidationPipe } from '@nestjs/common';
 import { Response, Request } from 'express';
-import * as path from 'path';
+import { FormDataRequest, MemoryStoredFile } from 'nestjs-form-data';
+import { FormDataTestDto } from './dto/request-file';
 
 @Controller('user')
 export class UsersController {
@@ -62,8 +65,9 @@ export class UsersController {
   }
 
   @Post('avatar')
-  async setAvatar(@Req() req: Request, @Res() res: Response) {
-    const result = await this.usersService.setPhoto(req.body);
+  @FormDataRequest({ storage: MemoryStoredFile })
+  async setAvatar(@Body() newAvatar: FormDataTestDto) {
+    const result = await this.usersService.setPhoto(newAvatar);
   }
 
   @Get('logout')
