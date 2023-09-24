@@ -11,6 +11,7 @@ import { StateService } from 'src/state/state.service';
 import { EmailService } from 'src/email/email.service';
 import * as fs from 'node:fs';
 import * as path from 'path';
+import { AppGateway } from 'src/app/app.gateway';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +19,6 @@ export class UsersService {
     @InjectRepository(User)
     private UserTable: Repository<User>,
     private JwtService: JwtService,
-    private stateService: StateService,
     private readonly emailService: EmailService,
   ) {}
 
@@ -163,7 +163,7 @@ export class UsersService {
       const dirname = process.cwd();
       const savePath = path.join(
         dirname,
-        'dist',
+        'src',
         'static',
         'image',
         newAvatar.avatar.originalName,

@@ -19,6 +19,13 @@ export class AppGateway {
   server: Server;
   clients = [];
 
+  async updatedClientsAfterUpdateDataBase(user: any) {
+    const searchedUser = this.clients.find(
+      (searchUser) => searchUser.id === user.id,
+    );
+    searchedUser.userPhoto = user.userPhoto;
+  }
+
   async broadcastMessage(payload: any) {
     for (const client of this.clients) {
       const sendData = {

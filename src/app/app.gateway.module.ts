@@ -5,6 +5,6 @@ import { User } from 'src/users/entities/user.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([User])],
-  providers: [AppGateway],
+  providers: [],
 })
 export class GateWayModule {}

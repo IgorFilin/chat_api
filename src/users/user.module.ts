@@ -8,6 +8,8 @@ import { cookieMiddleware } from 'src/middleware/cookie.middleware';
 import { EmailService } from 'src/email/email.service';
 import { StateService } from 'src/state/state.service';
 import { MemoryStoredFile, NestjsFormDataModule } from 'nestjs-form-data';
+import { UserSubscriber } from 'src/dataBaseChangeObserver/database-change.service';
+import { AppGateway } from 'src/app/app.gateway';
 
 @Module({
   imports: [
@@ -25,7 +27,13 @@ import { MemoryStoredFile, NestjsFormDataModule } from 'nestjs-form-data';
     }),
   ],
   controllers: [UsersController],
-  providers: [UsersService, EmailService, StateService],
+  providers: [
+    UsersService,
+    EmailService,
+    StateService,
+    UserSubscriber,
+    AppGateway,
+  ],
 })
 export class UsersModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
