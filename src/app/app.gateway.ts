@@ -18,6 +18,7 @@ export class AppGateway {
   @WebSocketServer()
   server: Server;
   clients = [];
+  messages = [];
 
   async updatedClientsAfterUpdateDataBase(user: any) {
     const searchedUser = this.clients.find(
@@ -27,25 +28,32 @@ export class AppGateway {
   }
 
   async broadcastMessage(payload: any) {
-    for (const client of this.clients) {
-      const sendData = {
-        message: payload.message.trim(),
-        userId: payload.user.id,
-        name: payload.user.name.trim(),
-        userPhoto: '',
-      };
-      const pr = new Promise((res, rej) => {
-        fs.readFile(payload.user.userPhoto, 'base64', (err, data) => {
-          if (err) {
-            rej(0);
-          }
-          sendData.userPhoto = data;
-          res(1);
-        });
+    const sendData = {
+      message: payload.message.trim(),
+      userId: payload.user.id,
+      name: payload.user.name.trim(),
+      userPhoto: '',
+    };
+    const pr = new Promise((res, rej) => {
+      fs.readFile(payload.user.userPhoto, 'base64', (err, data) => {
+        if (err) {
+          rej(0);
+        }
+        sendData.userPhoto = data;
+        res(1);
       });
-      await pr;
-      const message = JSON.stringify(sendData);
-      client.client.send(message);
+    });
+    await pr;
+    if (this.messages.length < 100) {
+      this.messages.unshift(sendData);
+    } else {
+      this.messages.pop();
+      this.messages.unshift(sendData);
+    }
+
+    for (const client of this.clients) {
+      const messages = JSON.stringify(this.messages);
+      client.client.send(messages);
     }
   }
 
@@ -73,6 +81,8 @@ export class AppGateway {
       userPhoto: user.userPhoto,
       client,
     });
+
+    client.send(JSON.stringify(this.messages));
     console.log(`Client connected`);
   }
 }
