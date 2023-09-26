@@ -6,8 +6,6 @@ import {
   UsePipes,
   Res,
   Req,
-  UseInterceptors,
-  UploadedFile,
 } from '@nestjs/common';
 import { UsersService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -72,8 +70,14 @@ export class UsersController {
     @Res() res: Response,
   ) {
     const userId = req.query.id as string;
-    const result = await this.usersService.setPhoto(userId, newAvatar);
-    res.sendFile(result);
+    const result: any = await this.usersService.setPhoto(userId, newAvatar);
+    if (result.message) {
+      res.status(415).type('application/json').send({
+        message: result.message,
+      });
+    } else {
+      res.sendFile(result);
+    }
   }
 
   @Get('logout')

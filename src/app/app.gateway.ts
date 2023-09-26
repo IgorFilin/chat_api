@@ -27,42 +27,47 @@ export class AppGateway {
     searchedUser.userPhoto = user.userPhoto;
   }
 
-  async broadcastMessage(payload: any) {
+  async broadcastMessage(userId: any, message: string) {
+    const user = this.clients.find((user) => user.id === userId);
+
     const sendData = {
-      message: payload.message.trim(),
-      userId: payload.user.id,
-      name: payload.user.name.trim(),
+      message: message.trim(),
+      userId: user.id,
+      name: user.name.trim(),
       userPhoto: '',
     };
-    const pr = new Promise((res, rej) => {
-      fs.readFile(payload.user.userPhoto, 'base64', (err, data) => {
+
+    const pr = new Promise<void>((res, rej) => {
+      fs.readFile(user.userPhoto, 'base64', (err, data) => {
         if (err) {
-          rej(0);
+          rej();
         }
         sendData.userPhoto = data;
-        res(1);
+        res();
       });
     });
-    await pr;
-    if (this.messages.length < 100) {
-      this.messages.unshift(sendData);
-    } else {
-      this.messages.pop();
-      this.messages.unshift(sendData);
-    }
 
-    for (const client of this.clients) {
-      const messages = JSON.stringify(this.messages);
-      client.client.send(messages);
+    try {
+      await pr;
+    } catch (e) {
+    } finally {
+      if (this.messages.length < 100) {
+        this.messages.unshift(sendData);
+      } else {
+        this.messages.pop();
+        this.messages.unshift(sendData);
+      }
+
+      for (const client of this.clients) {
+        const messages = JSON.stringify(this.messages);
+        client.client.send(messages);
+      }
     }
   }
 
   @SubscribeMessage('message')
   handleMessage(@MessageBody() body: any) {
-    const user = this.clients.find((user) => user.id === body.id);
-    const message = body.message;
-
-    this.broadcastMessage({ user, message }); // отправляем данные всем подключенным клиентам
+    this.broadcastMessage(body.id, body.message); // отправляем данные всем подключенным клиентам
   }
 
   handleDisconnect(client: Socket) {
@@ -83,6 +88,6 @@ export class AppGateway {
     });
 
     client.send(JSON.stringify(this.messages));
-    console.log(`Client connected`);
+    console.log(`Client ${user.name} connected`);
   }
 }

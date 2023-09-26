@@ -1,5 +1,4 @@
 import {
-  FileSystemStoredFile,
   HasMimeType,
   IsFile,
   MaxFileSize,

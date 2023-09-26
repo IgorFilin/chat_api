@@ -13,14 +13,15 @@ export class IsAllowedDomain implements ValidatorConstraintInterface {
     // Получаем доменное имя из адреса электронной почты
     const [, domain] = email.split('@');
     args.constraints = [];
-    // Проверяем, допустим ли домен
-    const isAllowedDomain = [
+    const domains = [
       'google.com',
       'yandex.ru',
       'mail.ru',
       'gmail.com',
       'bk.ru',
-    ].includes(domain);
+    ];
+    // Проверяем, допустим ли домен
+    const isAllowedDomain = domains.includes(domain);
     return isAllowedDomain;
   }
 
@@ -28,6 +29,6 @@ export class IsAllowedDomain implements ValidatorConstraintInterface {
     if (!args.value) {
       return 'Почта должна быть обязательно введена';
     }
-    return 'Адрес электронной почты должен быть на домене google.com, yandex.ru или mail.ru';
+    return 'Электронная почта данного домена не подходит для регистрации';
   }
 }

@@ -15,11 +15,12 @@ import { AppGateway } from 'src/app/app.gateway';
   imports: [
     TypeOrmModule.forFeature([User]),
     JwtModule.register({
-      secret: 'Gf6$#@dFb8&kLp2xRz9*Qv1^tWmNs7', // свой секретный ключ, потом поменять на переменную окружения
+      secret: process.env.SECRET_REGISTER_KEY, // свой секретный ключ, потом поменять на переменную окружения
       signOptions: {
         expiresIn: '1h', // Время жизни токена
       },
     }),
+    // Модуль парсит входящую форм дату в читаемый обьект
     NestjsFormDataModule.configAsync({
       useFactory: () => ({
         storage: MemoryStoredFile,

@@ -7,7 +7,6 @@ import { UsersModule } from './users/user.module';
 import { User } from './users/entities/user.entity';
 import { EmailService } from './email/email.service';
 import { StateService } from './state/state.service';
-import { AppGateway } from './app/app.gateway';
 import { GateWayModule } from './app/app.gateway.module';
 
 @Module({

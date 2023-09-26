@@ -7,11 +7,9 @@ import { User } from './entities/user.entity';
 import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
-import { StateService } from 'src/state/state.service';
 import { EmailService } from 'src/email/email.service';
 import * as fs from 'node:fs';
 import * as path from 'path';
-import { AppGateway } from 'src/app/app.gateway';
 
 @Injectable()
 export class UsersService {
@@ -42,11 +40,12 @@ export class UsersService {
           'image',
           'default_photo_user.webp',
         );
-        console.log('123123');
+
         const token = this.JwtService.sign({
           name: createUserDto.name,
           password: createUserDto.password,
         });
+
         // Создаем пользователя по сущности
         const user = new User();
         user.name = createUserDto.name;
@@ -159,6 +158,14 @@ export class UsersService {
 
   async setPhoto(userId: string, newAvatar: any) {
     try {
+      if (
+        newAvatar.avatar.busBoyMimeType !== 'image/webp' &&
+        newAvatar.avatar.busBoyMimeType !== 'image/png'
+      ) {
+        return {
+          message: 'Пожалуйста выберите изоражение формата webp или png',
+        };
+      }
       // Сохраняем файл по дефолтному пути, в папку dist сборки проекта.
       const dirname = process.cwd();
       const savePath = path.join(
