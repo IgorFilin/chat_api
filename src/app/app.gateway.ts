@@ -80,14 +80,18 @@ export class AppGateway {
     const user = await this.UserTable.findOneBy({
       id: userId,
     });
-    this.clients.push({
-      id: userId,
-      name: user.name,
-      userPhoto: user.userPhoto,
-      client,
-    });
+    if (!this.clients.some((client) => client.id === user.id)) {
+      this.clients.push({
+        id: userId,
+        name: user.name,
+        userPhoto: user.userPhoto,
+        client,
+      });
+    }
 
-    client.send(JSON.stringify(this.messages));
+    client.send(
+      JSON.stringify({ messages: this.messages, clients: this.clients }),
+    );
     console.log(`Client ${user.name} connected`);
   }
 }
