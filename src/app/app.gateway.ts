@@ -89,9 +89,16 @@ export class AppGateway {
       });
     }
 
-    client.send(
-      JSON.stringify({ messages: this.messages, clients: this.clients }),
-    );
+    client.send(JSON.stringify({ messages: this.messages }));
+
+    const sendClients = this.clients.map((clientMap) => ({
+      id: clientMap.id,
+      name: clientMap.name,
+    }));
+
+    for (const searchClient of this.clients) {
+      searchClient.client.send(JSON.stringify({ clients: sendClients }));
+    }
     console.log(`Client ${user.name} connected`);
   }
 }
