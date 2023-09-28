@@ -75,6 +75,18 @@ export class AppGateway {
     this.clients = this.clients.filter(
       (client) => client.id !== disconnectedClient.userId,
     );
+    console.log(this.clients);
+    // Создаем новый массив для отправки подключенных пользователей на клиент
+    const sendClients = this.clients.map((clientMap) => ({
+      id: clientMap.id,
+      name: clientMap.name,
+    }));
+
+    //При отключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
+    for (const searchClient of this.clients) {
+      searchClient.client.send(JSON.stringify({ clients: sendClients }));
+    }
+    console.log('Client disconnect');
   }
 
   async handleConnection(client: Socket, ...args: any) {
@@ -100,7 +112,7 @@ export class AppGateway {
       });
     }
 
-    // Создаем новвый массив для отправки подключенных пользователей на клиент
+    // Создаем новый массив для отправки подключенных пользователей на клиент
     const sendClients = this.clients.map((clientMap) => ({
       id: clientMap.id,
       name: clientMap.name,
