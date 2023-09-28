@@ -70,8 +70,11 @@ export class AppGateway {
     this.broadcastMessage(body.id, body.message); // отправляем данные всем подключенным клиентам
   }
 
-  handleDisconnect(client: Socket) {
-    console.log(`Client disconnected`);
+  handleDisconnect(disconnectedClient: any, ...args: any) {
+    // Удаляем клиента который отключился
+    this.clients = this.clients.filter(
+      (client) => client.id !== disconnectedClient.userId,
+    );
   }
 
   async handleConnection(client: Socket, ...args: any) {
@@ -83,6 +86,9 @@ export class AppGateway {
     const user = await this.UserTable.findOneBy({
       id: userId,
     });
+
+    // Добавляет обьекту клиента веб сокета id, для успешной идентификации и удаления при дисконнекте
+    client['userId'] = userId;
 
     // Если пользака нет в массиве клиентов веб сокетов, то пушим его туда
     if (!this.clients.some((client) => client.id === user.id)) {
