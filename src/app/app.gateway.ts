@@ -75,11 +75,16 @@ export class AppGateway {
   }
 
   async handleConnection(client: Socket, ...args: any) {
+    // Вытаскием id с квери параметров
     const url = new URLSearchParams(args[0].url);
     const userId = url.get('/?userID');
+
+    // Ищем пользака по этому id
     const user = await this.UserTable.findOneBy({
       id: userId,
     });
+
+    // Если пользака нет в массиве клиентов веб сокетов, то пушим его туда
     if (!this.clients.some((client) => client.id === user.id)) {
       this.clients.push({
         id: userId,
@@ -89,16 +94,19 @@ export class AppGateway {
       });
     }
 
-    client.send(JSON.stringify({ messages: this.messages }));
-
+    // Создаем новвый массив для отправки подключенных пользователей на клиент
     const sendClients = this.clients.map((clientMap) => ({
       id: clientMap.id,
       name: clientMap.name,
     }));
 
+    //При подключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
     for (const searchClient of this.clients) {
       searchClient.client.send(JSON.stringify({ clients: sendClients }));
     }
+
+    client.send(JSON.stringify({ messages: this.messages }));
+
     console.log(`Client ${user.name} connected`);
   }
 }
