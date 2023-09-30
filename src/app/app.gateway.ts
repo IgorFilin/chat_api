@@ -59,7 +59,7 @@ export class AppGateway {
       }
 
       for (const client of this.clients) {
-        const messages = JSON.stringify(this.messages);
+        const messages = JSON.stringify({ messages: this.messages });
         client.client.send(messages);
       }
     }
@@ -81,7 +81,6 @@ export class AppGateway {
       id: clientMap.id,
       name: clientMap.name,
     }));
-
     //При отключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
     for (const searchClient of this.clients) {
       searchClient.client.send(JSON.stringify({ clients: sendClients }));
