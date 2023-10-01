@@ -27,11 +27,16 @@ export class AppGateway {
     searchedUser.userPhoto = user.userPhoto;
   }
 
-  async broadcastMessage(userId: any, message: string) {
+  async broadcastMessage(userId: any, message: string | ArrayBuffer) {
     const user = this.clients.find((user) => user.id === userId);
-
+    if (typeof message !== 'string') {
+      const buffer = Buffer.from(message);
+      message = buffer;
+    } else {
+      message = message.trim();
+    }
     const sendData = {
-      message: message.trim(),
+      message: message,
       userId: user.id,
       name: user.name.trim(),
       userPhoto: '',
