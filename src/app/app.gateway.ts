@@ -36,19 +36,9 @@ export class AppGateway {
       name: user.name.trim(),
       userPhoto: '',
     };
-
-    const pr = new Promise<void>((res, rej) => {
-      fs.readFile(user.userPhoto, 'base64', (err, data) => {
-        if (err) {
-          rej();
-        }
-        sendData.userPhoto = data;
-        res();
-      });
-    });
-
     try {
-      await pr;
+      const result = await fs.promises.readFile(user.userPhoto, 'base64');
+      sendData.userPhoto = result;
     } catch (e) {
     } finally {
       if (this.messages.length < 100) {
