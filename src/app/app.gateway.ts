@@ -46,7 +46,7 @@ export class AppGateway {
       sendData.userPhoto = result;
     } catch (e) {
     } finally {
-      if (this.messages.length < 100) {
+      if (this.messages.length < 20) {
         this.messages.unshift(sendData);
       } else {
         this.messages.pop();
