@@ -10,15 +10,20 @@ import { StateService } from 'src/state/state.service';
 import { MemoryStoredFile, NestjsFormDataModule } from 'nestjs-form-data';
 import { UserSubscriber } from 'src/dataBaseChangeObserver/database-change.service';
 import { AppGateway } from 'src/app/app.gateway';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    JwtModule.register({
-      secret: process.env.SECRET_REGISTER_KEY, // свой секретный ключ, потом поменять на переменную окружения
-      signOptions: {
-        expiresIn: '1h', // Время жизни токена
-      },
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => ({
+        secret: process.env.SECRET_REGISTER_KEY,
+        signOptions: {
+          expiresIn: '1h', // Время жизни токена
+        },
+      }),
+      inject: [ConfigService],
     }),
     // Модуль парсит входящую форм дату в читаемый обьект
     NestjsFormDataModule.configAsync({
