@@ -59,7 +59,11 @@ export class UsersController {
   async getAvatar(@Req() req: Request, @Res() res: Response) {
     const token = req.cookies.authToken;
     const result = await this.usersService.getPhoto(token);
-    res.sendFile(result);
+    if (result) {
+      res.sendFile(result);
+    } else {
+      res.sendStatus(403);
+    }
   }
 
   @Post('avatar')

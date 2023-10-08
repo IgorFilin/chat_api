@@ -141,18 +141,20 @@ export class UsersService {
   }
 
   async getPhoto(authToken: string) {
-    const user = await this.UserTable.findOneBy({ authToken });
-    if (user.authToken) {
-      const image = path.basename(user.userPhoto);
-      const dirname = process.cwd();
-      const imagePath = path.join(
-        dirname,
-        'dist',
-        'static',
-        'image',
-        image ? image : 'default_photo_user.webp',
-      );
-      return imagePath;
+    if (authToken) {
+      const user = await this.UserTable.findOneBy({ authToken });
+      if (user.authToken) {
+        const image = path.basename(user.userPhoto);
+        const dirname = process.cwd();
+        const imagePath = path.join(
+          dirname,
+          'dist',
+          'static',
+          'image',
+          image ? image : 'default_photo_user.webp',
+        );
+        return imagePath;
+      }
     }
   }
 
