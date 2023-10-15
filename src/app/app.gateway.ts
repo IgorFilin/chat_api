@@ -9,6 +9,7 @@ import { Socket, Server } from 'socket.io';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as fs from 'node:fs';
+
 @WebSocketGateway()
 export class AppGateway {
   constructor(
@@ -29,33 +30,57 @@ export class AppGateway {
 
   async broadcastMessage(userId: any, message: string | ArrayBuffer) {
     const user = this.clients.find((user) => user.id === userId);
-    if (typeof message !== 'string') {
-      const buffer = Buffer.from(message);
-      message = buffer;
-    } else {
-      message = message.trim();
-    }
+
+    // if (typeof message !== 'string') {
+    //   message = message;
+    // } else {
+    //   message = message.trim();
+    // }
+
     const sendData = {
       message: message,
       userId: user.id,
       name: user.name.trim(),
       userPhoto: '',
+      chunkIndex: 0,
     };
-    try {
-      const result = await fs.promises.readFile(user.userPhoto, 'base64');
-      sendData.userPhoto = result;
-    } catch (e) {
-    } finally {
-      if (this.messages.length < 20) {
-        this.messages.unshift(sendData);
-      } else {
-        this.messages.pop();
-        this.messages.unshift(sendData);
-      }
 
-      for (const client of this.clients) {
-        const messages = JSON.stringify({ messages: this.messages });
-        client.client.send(messages);
+    if (this.messages.length < 20) {
+      this.messages.unshift(sendData);
+    } else {
+      this.messages.pop();
+      this.messages.unshift(sendData);
+    }
+
+    if (message instanceof ArrayBuffer) {
+      message = Buffer.from(message).toString('utf8');
+    }
+
+    const chunkSize = 1024;
+    const totalChunks = Math.ceil(message.length / chunkSize);
+    console.log(totalChunks);
+    for (const client of this.clients) {
+      let count = false;
+      for (let i = 0; i < totalChunks; i++) {
+        const start = i * chunkSize;
+        const end = (i + 1) * chunkSize;
+        const messageChunk = message.slice(start, end);
+
+        const result = await fs.promises.readFile(user.userPhoto, 'base64');
+        sendData.userPhoto = result;
+
+        sendData.message = messageChunk;
+        let messageData;
+        if (!count) {
+          messageData = JSON.stringify({ messageData: sendData });
+        } else {
+          messageData = JSON.stringify({
+            message: messageChunk,
+            chunkIndex: i,
+          });
+        }
+        client.client.send(messageData);
+        if (!count) count = true;
       }
     }
   }
