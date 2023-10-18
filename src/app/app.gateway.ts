@@ -52,9 +52,8 @@ export class AppGateway {
         this.messages.pop();
         this.messages.unshift(sendData);
       }
-
       for (const client of this.clients) {
-        const messages = JSON.stringify({ messages: this.messages });
+        const messages = JSON.stringify({ messages: sendData });
         client.client.send(messages);
       }
     }
@@ -117,7 +116,9 @@ export class AppGateway {
       searchClient.client.send(JSON.stringify({ clients: sendClients }));
     }
 
-    client.send(JSON.stringify({ messages: this.messages }));
+    for (let i = 0; i < this.messages.length; i++) {
+      client.send(JSON.stringify({ messages: this.messages[i] }));
+    }
 
     console.log(`Client ${user.name} connected`);
   }
