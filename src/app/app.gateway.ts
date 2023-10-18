@@ -9,6 +9,7 @@ import { Socket, Server } from 'socket.io';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as fs from 'node:fs';
+
 @WebSocketGateway()
 export class AppGateway {
   constructor(
@@ -29,12 +30,13 @@ export class AppGateway {
 
   async broadcastMessage(userId: any, message: string | ArrayBuffer) {
     const user = this.clients.find((user) => user.id === userId);
-    if (typeof message !== 'string') {
-      const buffer = Buffer.from(message);
-      message = buffer;
-    } else {
-      message = message.trim();
-    }
+
+    // if (typeof message !== 'string') {
+    //   message = message;
+    // } else {
+    //   message = message.trim();
+    // }
+
     const sendData = {
       message: message,
       userId: user.id,
