@@ -160,14 +160,6 @@ export class UsersService {
 
   async setPhoto(userId: string, newAvatar: any) {
     try {
-      if (
-        newAvatar.avatar.busBoyMimeType !== 'image/webp' &&
-        newAvatar.avatar.busBoyMimeType !== 'image/png'
-      ) {
-        return {
-          message: 'Пожалуйста выберите изоражение формата webp или png',
-        };
-      }
       // Сохраняем файл по дефолтному пути, в папку dist сборки проекта.
       const dirname = process.cwd();
       const savePath = path.join(

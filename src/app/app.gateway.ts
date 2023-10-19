@@ -49,10 +49,10 @@ export class AppGateway {
     } catch (e) {
     } finally {
       if (this.messages.length < 20) {
-        this.messages.unshift(sendData);
+        this.messages.push(sendData);
       } else {
         this.messages.pop();
-        this.messages.unshift(sendData);
+        this.messages.push(sendData);
       }
       for (const client of this.clients) {
         const messages = JSON.stringify({ messages: sendData });
