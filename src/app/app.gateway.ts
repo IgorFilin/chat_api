@@ -118,8 +118,13 @@ export class AppGateway {
       searchClient.client.send(JSON.stringify({ clients: sendClients }));
     }
 
-    for (let i = 0; i < this.messages.length; i++) {
-      client.send(JSON.stringify({ messages: this.messages[i] }));
+    for (let i = 0; i <= this.messages.length; i++) {
+      client.send(
+        JSON.stringify({
+          messages: this.messages[i],
+          lengthMessages: this.messages.length,
+        }),
+      );
     }
 
     console.log(`Client ${user.name} connected`);
