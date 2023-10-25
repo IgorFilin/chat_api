@@ -112,7 +112,8 @@ export class UsersController {
   async users_list(@Req() req: Request, @Res() res: Response) {
     const result = await this.usersService.confirmToken(req.cookies.authToken);
     if (result.isAuth) {
-      console.log('USERS_LIST');
+      const users = await this.usersService.findAll();
+      res.status(201).send(users);
     }
   }
 }

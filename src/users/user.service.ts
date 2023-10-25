@@ -186,4 +186,10 @@ export class UsersService {
       }
     } catch (e) {}
   }
+
+  async findAll() {
+    try {
+      return await this.UserTable.find({ select: ['id', 'name'] });
+    } catch (e) {}
+  }
 }
