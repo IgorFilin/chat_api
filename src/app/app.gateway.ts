@@ -16,6 +16,7 @@ export class AppGateway {
     @InjectRepository(User)
     private UserTable: Repository<User>,
   ) {}
+
   @WebSocketServer()
   server: Server;
   clients = [];
@@ -43,6 +44,7 @@ export class AppGateway {
       name: user.name.trim(),
       userPhoto: '',
     };
+
     try {
       const result = await fs.promises.readFile(user.userPhoto, 'base64');
       sendData.userPhoto = result;
