@@ -68,6 +68,11 @@ export class AppGateway {
     this.broadcastMessage(body.id, body.message); // отправляем данные всем подключенным клиентам
   }
 
+  @SubscribeMessage('private_message')
+  handlePrivateMessage(@MessageBody() body: any) {
+    console.log(body);
+  }
+
   handleDisconnect(disconnectedClient: any, ...args: any) {
     // Удаляем клиента который отключился
     this.clients = this.clients.filter(

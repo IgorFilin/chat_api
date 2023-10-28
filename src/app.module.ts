@@ -8,6 +8,8 @@ import { User } from './users/entities/user.entity';
 import { EmailService } from './email/email.service';
 import { StateService } from './state/state.service';
 import { GateWayModule } from './app/app.gateway.module';
+import { Room } from './app/entities/app.gateway.entity';
+import { Message } from './app/entities/app.messages.entity';
 
 @Module({
   imports: [
@@ -21,7 +23,7 @@ import { GateWayModule } from './app/app.gateway.module';
         username: configService.get('BD_USERNAME'),
         password: configService.get('BD_PASSWORD'),
         database: configService.get('BD_DATABASE'),
-        entities: [User],
+        entities: [User, Room, Message],
         synchronize: true,
       }),
       inject: [ConfigService],
