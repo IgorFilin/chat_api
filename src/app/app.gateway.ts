@@ -68,6 +68,12 @@ export class AppGateway {
     this.broadcastMessage(body.id, body.message); // отправляем данные всем подключенным клиентам
   }
 
+  @SubscribeMessage('open_room')
+  handleOpenPrivateRoom(client: Socket, @MessageBody() body: any) {
+    console.log(client);
+    console.log(body);
+  }
+
   @SubscribeMessage('private_message')
   handlePrivateMessage(@MessageBody() body: any) {
     console.log(body);
