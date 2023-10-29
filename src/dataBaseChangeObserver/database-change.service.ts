@@ -5,7 +5,7 @@ import {
   UpdateEvent,
 } from 'typeorm';
 import { User } from '../users/entities/user.entity';
-import { WebsocketService } from 'src/app/websocket.service';
+import { WebsocketService } from 'src/websocket/websocket.service';
 
 // Слушатель изменения БД
 @EventSubscriber()

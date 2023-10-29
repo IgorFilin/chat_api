@@ -7,9 +7,9 @@ import { UsersModule } from './users/user.module';
 import { User } from './users/entities/user.entity';
 import { EmailService } from './email/email.service';
 import { StateService } from './state/state.service';
-import { WebsocketModule } from './app/websocket.module';
-import { Room } from './app/entities/room.entity';
-import { Message } from './app/entities/message.entity';
+import { WebsocketModule } from './websocket/websocket.module';
+import { Room } from './websocket/entities/room.entity';
+import { Message } from './websocket/entities/message.entity';
 
 @Module({
   imports: [
