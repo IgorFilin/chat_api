@@ -9,7 +9,7 @@ import {
 import { Message } from './message.entity';
 import { User } from 'src/users/entities/user.entity';
 
-Entity('Room');
+@Entity('Room')
 export class Room {
   @PrimaryGeneratedColumn('uuid')
   id: string;
@@ -18,7 +18,7 @@ export class Room {
   name: string;
 
   @OneToMany(() => Message, (message) => message.room)
-  @Column()
+  @JoinTable()
   messages: Message[];
 
   @ManyToMany(() => User)
