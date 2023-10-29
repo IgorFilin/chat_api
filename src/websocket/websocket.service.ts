@@ -58,21 +58,24 @@ export class WebsocketService {
       roomId: roomId,
     };
 
-    try {
-      const result = await fs.promises.readFile(user.userPhoto, 'base64');
-      sendData.userPhoto = result;
-    } catch (e) {
-    } finally {
-      if (this.messages.length < 20) {
-        this.messages.push(sendData);
-      } else {
-        this.messages.pop();
-        this.messages.push(sendData);
+    if (!roomId) {
+      try {
+        const result = await fs.promises.readFile(user.userPhoto, 'base64');
+        sendData.userPhoto = result;
+      } catch (e) {
+      } finally {
+        if (this.messages.length < 20) {
+          this.messages.push(sendData);
+        } else {
+          this.messages.pop();
+          this.messages.push(sendData);
+        }
+        for (const client of this.clients) {
+          const messages = JSON.stringify({ messages: sendData });
+          client.client.send(messages);
+        }
       }
-      for (const client of this.clients) {
-        const messages = JSON.stringify({ messages: sendData });
-        client.client.send(messages);
-      }
+    } else {
     }
   }
 
@@ -146,12 +149,14 @@ export class WebsocketService {
     this.clients = this.clients.filter(
       (client) => client.id !== disconnectedClient.userId,
     );
+
     console.log(this.clients);
     // Создаем новый массив для отправки подключенных пользователей на клиент
     const sendClients = this.clients.map((clientMap) => ({
       id: clientMap.id,
       name: clientMap.name,
     }));
+
     //При отключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
     for (const searchClient of this.clients) {
       searchClient.client.send(JSON.stringify({ clients: sendClients }));
