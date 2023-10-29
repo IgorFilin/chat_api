@@ -37,7 +37,11 @@ export class WebsocketService {
     searchedUser.userPhoto = user.userPhoto;
   }
 
-  async broadcastMessage(userId: any, message: string | ArrayBuffer) {
+  async broadcastMessage(
+    userId: any,
+    message: string | ArrayBuffer,
+    roomId: string,
+  ) {
     const user = this.clients.find((user) => user.id === userId);
 
     // if (typeof message !== 'string') {
@@ -51,6 +55,7 @@ export class WebsocketService {
       userId: user.id,
       name: user.name.trim(),
       userPhoto: '',
+      roomId: roomId,
     };
 
     try {
@@ -73,7 +78,7 @@ export class WebsocketService {
 
   @SubscribeMessage('message')
   handleMessage(@MessageBody() body: any) {
-    this.broadcastMessage(body.id, body.message); // отправляем данные всем подключенным клиентам
+    this.broadcastMessage(body.id, body.message, ''); // отправляем данные всем подключенным клиентам
   }
 
   @SubscribeMessage('open_room')
@@ -105,9 +110,7 @@ export class WebsocketService {
     let roomMessages = await this.RoomTable.createQueryBuilder('room')
       .leftJoinAndSelect('room.messages', 'message1')
       .where('message1.roomId = :roomId', { roomId: room.id })
-      .getOne();
-
-    console.log(roomMessages);
+      .getOne(); // получение пака сообщений из подтаблицы Message, если их нет то null
 
     roomMessages ? roomMessages.messages : [];
 
@@ -121,9 +124,12 @@ export class WebsocketService {
         );
         client.client.send(
           JSON.stringify({
-            roomId: room.id,
-            roomName: room.name,
-            messages: roomMessages.messages[i],
+            lengthMessages: roomMessages.messages.length,
+            messages: {
+              roomId: room.id,
+              roomName: room.name,
+              ...roomMessages.messages[i],
+            },
           }),
         );
       }
@@ -132,7 +138,7 @@ export class WebsocketService {
 
   @SubscribeMessage('private_message')
   handlePrivateMessage(@MessageBody() body: any) {
-    this.broadcastMessage(body.id, body.message);
+    this.broadcastMessage(body.id, body.message, body.roomId);
   }
 
   handleDisconnect(disconnectedClient: any, ...args: any) {
