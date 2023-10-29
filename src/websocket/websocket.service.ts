@@ -10,6 +10,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as fs from 'node:fs';
 import { Room } from './entities/room.entity';
+import { Message } from './entities/message.entity';
 
 @WebSocketGateway()
 export class WebsocketService {
@@ -19,6 +20,9 @@ export class WebsocketService {
 
     @InjectRepository(Room)
     private RoomTable: Repository<Room>,
+
+    @InjectRepository(Message)
+    private MessageTable: Repository<Message>,
   ) {}
 
   @WebSocketServer()
@@ -76,36 +80,59 @@ export class WebsocketService {
   async handleOpenPrivateRoom(
     @MessageBody() body: { myId: string; userId: string },
   ) {
+    const creator = await this.UserTable.findOneBy({ id: body.myId });
+    const userToAdd = await this.UserTable.findOneBy({ id: body.userId });
+
     // Получает комнату в которой есть 2 пользователя, вы и пользователь собеседник
-    const room = await this.RoomTable.createQueryBuilder('room')
+    let room = await this.RoomTable.createQueryBuilder('room')
       .innerJoin('room.users', 'user1') // Делает связь свойства сущности room с массивом подтаблицей users
       .innerJoin('room.users', 'user2') // Делает связь свойства сущности room с массивом подтаблицей users 2 раз
       .where('user1.id = :userId1 AND user2.id = :userId2', {
-        userId1: body.myId,
-        userId2: body.userId,
+        userId1: creator.id,
+        userId2: userToAdd.id,
       }) // ищем в подтаблице для данной комнаты наличие userId1 и userId2 и если есть возвращать комнату
       .getOne();
 
-    if (room) {
-      const user = this.clients.find((user) => user.id === body.myId);
-      user.client.send(JSON.stringify(room));
+    if (!room) {
+      // Создайте новую комнату и добавьте пользователей
+      room = new Room();
+      room.name = `${creator.name}_${userToAdd.name}`;
+      room.users = [creator, userToAdd];
+      room.messages = [];
+      this.RoomTable.save(room);
     }
-    // const creator = await this.UserTable.findOneBy({ id: body.myId });
 
-    // // Получите пользователя, которого вы добавляете в комнату
-    // const userToAdd = await this.UserTable.findOneBy({ id: body.userId });
+    let roomMessages = await this.RoomTable.createQueryBuilder('room')
+      .leftJoinAndSelect('room.messages', 'message1')
+      .where('message1.roomId = :roomId', { roomId: room.id })
+      .getOne();
 
-    // // Создайте новую комнату и добавьте пользователей
-    // const room = new Room();
-    // room.name = `${creator.name}_${userToAdd.name}`;
-    // room.users = [creator, userToAdd];
-    // room.messages = [];
-    // this.RoomTable.save(room);
+    console.log(roomMessages);
+
+    roomMessages ? roomMessages.messages : [];
+
+    for (const client of this.clients.filter(
+      (client) => client.id === creator.id,
+    )) {
+      for (let i = 0; i < roomMessages.messages.length; i++) {
+        roomMessages.messages[i].userPhoto = await fs.promises.readFile(
+          roomMessages.messages[i].userPhoto,
+          'base64',
+        );
+        client.client.send(
+          JSON.stringify({
+            roomId: room.id,
+            roomName: room.name,
+            messages: roomMessages.messages[i],
+          }),
+        );
+      }
+    }
   }
 
   @SubscribeMessage('private_message')
   handlePrivateMessage(@MessageBody() body: any) {
-    console.log(body);
+    this.broadcastMessage(body.id, body.message);
   }
 
   handleDisconnect(disconnectedClient: any, ...args: any) {

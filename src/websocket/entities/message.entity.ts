@@ -14,7 +14,16 @@ export class Message {
   id: number;
 
   @Column()
-  text: string;
+  message: string;
+
+  @Column()
+  name: string;
+
+  @Column()
+  userId: string;
+
+  @Column()
+  userPhoto: string;
 
   @ManyToOne(() => Room, (room) => room.messages)
   room: Room;
