@@ -73,21 +73,34 @@ export class WebsocketService {
   }
 
   @SubscribeMessage('open_room')
-  async handleOpenPrivateRoom(@MessageBody() body: any) {
-    console.log(body.myId);
-    console.log(body.userId);
-    // Получите пользователя, создателя комнаты
-    const creator = await this.UserTable.findOneBy({ id: body.myId });
+  async handleOpenPrivateRoom(
+    @MessageBody() body: { myId: string; userId: string },
+  ) {
+    // Получает комнату в которой есть 2 пользователя, вы и пользователь собеседник
+    const room = await this.RoomTable.createQueryBuilder('room')
+      .innerJoin('room.users', 'user1') // Делает связь свойства сущности room с массивом подтаблицей users
+      .innerJoin('room.users', 'user2') // Делает связь свойства сущности room с массивом подтаблицей users 2 раз
+      .where('user1.id = :userId1 AND user2.id = :userId2', {
+        userId1: body.myId,
+        userId2: body.userId,
+      }) // ищем в подтаблице для данной комнаты наличие userId1 и userId2 и если есть возвращать комнату
+      .getOne();
 
-    // Получите пользователя, которого вы добавляете в комнату
-    const userToAdd = await this.UserTable.findOneBy({ id: body.userId });
-    // Создайте новую комнату и добавьте пользователей
-    const room = new Room();
-    room.name = `Room_${creator.name}_${userToAdd.name}`;
-    room.users = [creator, userToAdd];
-    room.messages = [];
-    console.log(room);
-    this.RoomTable.save(room);
+    if (room) {
+      const user = this.clients.find((user) => user.id === body.myId);
+      user.client.send(JSON.stringify(room));
+    }
+    // const creator = await this.UserTable.findOneBy({ id: body.myId });
+
+    // // Получите пользователя, которого вы добавляете в комнату
+    // const userToAdd = await this.UserTable.findOneBy({ id: body.userId });
+
+    // // Создайте новую комнату и добавьте пользователей
+    // const room = new Room();
+    // room.name = `${creator.name}_${userToAdd.name}`;
+    // room.users = [creator, userToAdd];
+    // room.messages = [];
+    // this.RoomTable.save(room);
   }
 
   @SubscribeMessage('private_message')

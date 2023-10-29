@@ -18,7 +18,6 @@ export class Room {
   name: string;
 
   @OneToMany(() => Message, (message) => message.room)
-  @JoinTable()
   messages: Message[];
 
   @ManyToMany(() => User)
