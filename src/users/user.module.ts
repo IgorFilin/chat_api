@@ -9,12 +9,14 @@ import { EmailService } from 'src/email/email.service';
 import { StateService } from 'src/state/state.service';
 import { MemoryStoredFile, NestjsFormDataModule } from 'nestjs-form-data';
 import { UserSubscriber } from 'src/dataBaseChangeObserver/database-change.service';
-import { AppGateway } from 'src/app/app.gateway';
+import { WebsocketService } from 'src/app/websocket.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { Room } from 'src/app/entities/room.entity';
+import { Message } from 'src/app/entities/message.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, Room, Message]),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -38,7 +40,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     EmailService,
     StateService,
     UserSubscriber,
-    AppGateway,
+    WebsocketService,
   ],
 })
 export class UsersModule implements NestModule {

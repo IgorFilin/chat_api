@@ -9,12 +9,16 @@ import { Socket, Server } from 'socket.io';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import * as fs from 'node:fs';
+import { Room } from './entities/room.entity';
 
 @WebSocketGateway()
-export class AppGateway {
+export class WebsocketService {
   constructor(
     @InjectRepository(User)
     private UserTable: Repository<User>,
+
+    @InjectRepository(Room)
+    private RoomTable: Repository<Room>,
   ) {}
 
   @WebSocketServer()
@@ -69,9 +73,21 @@ export class AppGateway {
   }
 
   @SubscribeMessage('open_room')
-  handleOpenPrivateRoom(client: Socket, @MessageBody() body: any) {
-    console.log(client);
-    console.log(body);
+  async handleOpenPrivateRoom(@MessageBody() body: any) {
+    console.log(body.myId);
+    console.log(body.userId);
+    // Получите пользователя, создателя комнаты
+    const creator = await this.UserTable.findOneBy({ id: body.myId });
+
+    // Получите пользователя, которого вы добавляете в комнату
+    const userToAdd = await this.UserTable.findOneBy({ id: body.userId });
+    // Создайте новую комнату и добавьте пользователей
+    const room = new Room();
+    room.name = `Room_${creator.name}_${userToAdd.name}`;
+    room.users = [creator, userToAdd];
+    room.messages = [];
+    console.log(room);
+    this.RoomTable.save(room);
   }
 
   @SubscribeMessage('private_message')

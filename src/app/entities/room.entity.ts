@@ -1,13 +1,12 @@
 import {
   Column,
-  CreateDateColumn,
   Entity,
   JoinTable,
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Message } from './app.messages.entity';
+import { Message } from './message.entity';
 import { User } from 'src/users/entities/user.entity';
 
 Entity('Room');

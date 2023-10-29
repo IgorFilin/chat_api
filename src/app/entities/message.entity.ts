@@ -6,7 +6,7 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { Room } from './app.gateway.entity';
+import { Room } from './room.entity';
 
 Entity('Message');
 export class Message {

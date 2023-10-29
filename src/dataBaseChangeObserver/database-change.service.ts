@@ -5,12 +5,15 @@ import {
   UpdateEvent,
 } from 'typeorm';
 import { User } from '../users/entities/user.entity';
-import { AppGateway } from 'src/app/app.gateway';
+import { WebsocketService } from 'src/app/websocket.service';
 
 // Слушатель изменения БД
 @EventSubscriber()
 export class UserSubscriber implements EntitySubscriberInterface<User> {
-  constructor(dataSource: DataSource, private readonly appGateway: AppGateway) {
+  constructor(
+    dataSource: DataSource,
+    private readonly appGateway: WebsocketService,
+  ) {
     dataSource.subscribers.push(this);
   }
 

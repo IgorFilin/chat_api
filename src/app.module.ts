@@ -7,15 +7,15 @@ import { UsersModule } from './users/user.module';
 import { User } from './users/entities/user.entity';
 import { EmailService } from './email/email.service';
 import { StateService } from './state/state.service';
-import { GateWayModule } from './app/app.gateway.module';
-import { Room } from './app/entities/app.gateway.entity';
-import { Message } from './app/entities/app.messages.entity';
+import { WebsocketModule } from './app/websocket.module';
+import { Room } from './app/entities/room.entity';
+import { Message } from './app/entities/message.entity';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
-      imports: [ConfigModule, GateWayModule],
+      imports: [ConfigModule, WebsocketModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
         host: configService.get('BD_HOST'),
