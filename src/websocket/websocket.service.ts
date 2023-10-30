@@ -37,6 +37,20 @@ export class WebsocketService {
     searchedUser.userPhoto = user.userPhoto;
   }
 
+  async getAllMessagesPublicChat(userId: string, getMessage: boolean) {
+    if (getMessage) {
+      const client = this.clients.find((user) => user.id === userId);
+      for (let i = 0; i <= this.messages.length; i++) {
+        client.client.send(
+          JSON.stringify({
+            messages: this.messages[i],
+            lengthMessages: this.messages.length,
+          }),
+        );
+      }
+    }
+  }
+
   async broadcastMessage(
     userId: any,
     message: string | ArrayBuffer,
@@ -70,12 +84,12 @@ export class WebsocketService {
           this.messages.pop();
           this.messages.push(sendData);
         }
+
         for (const client of this.clients) {
           const messages = JSON.stringify({ messages: sendData });
           client.client.send(messages);
         }
       }
-    } else {
     }
   }
 
@@ -84,12 +98,19 @@ export class WebsocketService {
     this.broadcastMessage(body.id, body.message, ''); // отправляем данные всем подключенным клиентам
   }
 
+  @SubscribeMessage('all_messages_public')
+  handleAllMessage(@MessageBody() body: any) {
+    this.getAllMessagesPublicChat(body.id, body.getMessage); // отправляем данные всем подключенным клиентам
+  }
+
   @SubscribeMessage('open_room')
   async handleOpenPrivateRoom(
     @MessageBody() body: { myId: string; userId: string },
   ) {
     const creator = await this.UserTable.findOneBy({ id: body.myId });
     const userToAdd = await this.UserTable.findOneBy({ id: body.userId });
+
+    const client = this.clients.find((user) => user.id === body.myId);
 
     // Получает комнату в которой есть 2 пользователя, вы и пользователь собеседник
     let room = await this.RoomTable.createQueryBuilder('room')
@@ -115,27 +136,37 @@ export class WebsocketService {
       .where('message1.roomId = :roomId', { roomId: room.id })
       .getOne(); // получение пака сообщений из подтаблицы Message, если их нет то null
 
-    roomMessages ? roomMessages.messages : [];
+    if (!roomMessages) {
+      client.client.send(
+        JSON.stringify({
+          lengthMessages: 0,
+          userToAddPrivat: userToAdd.name,
+          messages: {
+            roomId: room.id,
+            roomName: room.name,
+            messages: {},
+          },
+        }),
+      );
+      return;
+    }
 
-    for (const client of this.clients.filter(
-      (client) => client.id === creator.id,
-    )) {
-      for (let i = 0; i < roomMessages.messages.length; i++) {
-        roomMessages.messages[i].userPhoto = await fs.promises.readFile(
-          roomMessages.messages[i].userPhoto,
-          'base64',
-        );
-        client.client.send(
-          JSON.stringify({
-            lengthMessages: roomMessages.messages.length,
-            messages: {
-              roomId: room.id,
-              roomName: room.name,
-              ...roomMessages.messages[i],
-            },
-          }),
-        );
-      }
+    for (let i = 0; i < roomMessages.messages.length; i++) {
+      roomMessages.messages[i].userPhoto = await fs.promises.readFile(
+        roomMessages.messages[i].userPhoto,
+        'base64',
+      );
+      client.client.send(
+        JSON.stringify({
+          lengthMessages: roomMessages.messages.length,
+          userToAddPrivat: userToAdd.name,
+          messages: {
+            roomId: room.id,
+            roomName: room.name,
+            ...roomMessages.messages[i],
+          },
+        }),
+      );
     }
   }
 
