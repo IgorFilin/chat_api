@@ -37,17 +37,15 @@ export class WebsocketService {
     searchedUser.userPhoto = user.userPhoto;
   }
 
-  async getAllMessagesPublicChat(userId: string, getMessage: boolean) {
-    if (getMessage) {
-      const client = this.clients.find((user) => user.id === userId);
-      for (let i = 0; i <= this.messages.length; i++) {
-        client.client.send(
-          JSON.stringify({
-            messages: this.messages[i],
-            lengthMessages: this.messages.length,
-          }),
-        );
-      }
+  async getAllMessagesPublicChat(userId: string) {
+    const client = this.clients.find((user) => user.id === userId);
+    for (let i = 0; i < this.messages.length; i++) {
+      client.client.send(
+        JSON.stringify({
+          messages: this.messages[i],
+          lengthMessages: this.messages.length,
+        }),
+      );
     }
   }
 
@@ -100,7 +98,7 @@ export class WebsocketService {
 
   @SubscribeMessage('all_messages_public')
   handleAllMessage(@MessageBody() body: any) {
-    this.getAllMessagesPublicChat(body.id, body.getMessage); // отправляем данные всем подключенным клиентам
+    this.getAllMessagesPublicChat(body.id); // отправляем данные всем подключенным клиентам
   }
 
   @SubscribeMessage('open_room')
@@ -156,6 +154,7 @@ export class WebsocketService {
         roomMessages.messages[i].userPhoto,
         'base64',
       );
+
       client.client.send(
         JSON.stringify({
           lengthMessages: roomMessages.messages.length,
