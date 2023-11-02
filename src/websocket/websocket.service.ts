@@ -88,6 +88,13 @@ export class WebsocketService {
           client.client.send(messages);
         }
       }
+    } else {
+      const Room = await this.RoomTable.findOne({
+        where: { id: roomId },
+        relations: ['users'],
+      }); // получаем пользаков данной комнаты.
+
+      console.log('USERS', Room.users);
     }
   }
 
