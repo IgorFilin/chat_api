@@ -85,8 +85,17 @@ export class WebsocketService {
         relations: ['users'],
       }); // получаем пользаков данной комнаты.
 
+      let messageToSend;
+
+      if (typeof message !== 'string') {
+        const textDecoder = new TextDecoder();
+        messageToSend = textDecoder.decode(new Uint8Array(message));
+      } else {
+        messageToSend = message.trim();
+      } // Нужно добавить поддержку отправку фото в личку
+
       const newMessage = new Message();
-      newMessage.message = sendData.message.toString();
+      newMessage.message = messageToSend;
       newMessage.name = user.name;
       newMessage.userId = user.id;
       newMessage.userPhoto = user.userPhoto;
@@ -94,10 +103,10 @@ export class WebsocketService {
 
       await this.MessageTable.save(newMessage);
 
-      let roomMessages = await this.RoomTable.createQueryBuilder('room')
-        .leftJoinAndSelect('room.messages', 'message1')
-        .where('message1.roomId = :roomId', { roomId: room.id })
-        .getOne(); // получение пака сообщений из подтаблицы Message, если их нет то null
+      // let roomMessages = await this.RoomTable.createQueryBuilder('room')
+      //   .leftJoinAndSelect('room.messages', 'message1')
+      //   .where('message1.roomId = :roomId', { roomId: room.id })
+      //   .getOne(); // получение пака сообщений из подтаблицы Message, если их нет то null
 
       for (let user of room.users) {
         this.clients[user.id].client.send(messages);
