@@ -54,12 +54,6 @@ export class WebsocketService {
   ) {
     const user = this.clients[userId];
 
-    // if (typeof message !== 'string') {
-    //   message = message;
-    // } else {
-    //   message = message.trim();
-    // }
-
     const sendData = {
       message: message,
       userId: user.id,
@@ -68,31 +62,46 @@ export class WebsocketService {
       roomId: roomId,
     };
 
-    if (!roomId) {
-      try {
-        const result = await fs.promises.readFile(user.userPhoto, 'base64');
-        sendData.userPhoto = result;
-      } catch (e) {
-      } finally {
-        if (this.messages.length < 20) {
-          this.messages.push(sendData);
-        } else {
-          this.messages.pop();
-          this.messages.push(sendData);
-        }
+    try {
+      const result = await fs.promises.readFile(user.userPhoto, 'base64');
+      sendData.userPhoto = result;
+    } catch (e) {}
 
-        for (const client in this.clients) {
-          const messages = JSON.stringify({ messages: sendData });
-          this.clients[client].client.send(messages);
-        }
+    const messages = JSON.stringify({ messages: sendData });
+
+    if (!roomId) {
+      if (this.messages.length < 20) {
+        this.messages.push(sendData);
+      } else {
+        this.messages.pop();
+        this.messages.push(sendData);
+      }
+      for (const client in this.clients) {
+        this.clients[client].client.send(messages);
       }
     } else {
-      const Room = await this.RoomTable.findOne({
+      const room = await this.RoomTable.findOne({
         where: { id: roomId },
         relations: ['users'],
       }); // получаем пользаков данной комнаты.
 
-      // console.log('USERS', Room.users);
+      const newMessage = new Message();
+      newMessage.message = sendData.message.toString();
+      newMessage.name = user.name;
+      newMessage.userId = user.id;
+      newMessage.userPhoto = user.userPhoto;
+      newMessage.room = room;
+
+      await this.MessageTable.save(newMessage);
+
+      let roomMessages = await this.RoomTable.createQueryBuilder('room')
+        .leftJoinAndSelect('room.messages', 'message1')
+        .where('message1.roomId = :roomId', { roomId: room.id })
+        .getOne(); // получение пака сообщений из подтаблицы Message, если их нет то null
+
+      for (let user of room.users) {
+        this.clients[user.id].client.send(messages);
+      }
     }
   }
 
@@ -154,6 +163,7 @@ export class WebsocketService {
       return;
     }
 
+    console.log(roomMessages.messages);
     for (let i = 0; i < roomMessages.messages.length; i++) {
       roomMessages.messages[i].userPhoto = await fs.promises.readFile(
         roomMessages.messages[i].userPhoto,
