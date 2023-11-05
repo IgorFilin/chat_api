@@ -27,18 +27,16 @@ export class WebsocketService {
 
   @WebSocketServer()
   server: Server;
-  clients = [];
+  clients = {};
   messages = [];
 
   async updatedClientsAfterUpdateDataBase(user: any) {
-    const searchedUser = this.clients.find(
-      (searchUser) => searchUser.id === user.id,
-    );
+    const searchedUser = this.clients[user.id];
     searchedUser.userPhoto = user.userPhoto;
   }
 
   async getAllMessagesPublicChat(userId: string) {
-    const client = this.clients.find((user) => user.id === userId);
+    const client = this.clients[userId];
     for (let i = 0; i < this.messages.length; i++) {
       client.client.send(
         JSON.stringify({
@@ -54,7 +52,7 @@ export class WebsocketService {
     message: string | ArrayBuffer,
     roomId: string,
   ) {
-    const user = this.clients.find((user) => user.id === userId);
+    const user = this.clients[userId];
 
     // if (typeof message !== 'string') {
     //   message = message;
@@ -83,9 +81,9 @@ export class WebsocketService {
           this.messages.push(sendData);
         }
 
-        for (const client of this.clients) {
+        for (const client in this.clients) {
           const messages = JSON.stringify({ messages: sendData });
-          client.client.send(messages);
+          this.clients[client].client.send(messages);
         }
       }
     } else {
@@ -94,7 +92,7 @@ export class WebsocketService {
         relations: ['users'],
       }); // получаем пользаков данной комнаты.
 
-      console.log('USERS', Room.users);
+      // console.log('USERS', Room.users);
     }
   }
 
@@ -115,7 +113,7 @@ export class WebsocketService {
     const creator = await this.UserTable.findOneBy({ id: body.myId });
     const userToAdd = await this.UserTable.findOneBy({ id: body.userId });
 
-    const client = this.clients.find((user) => user.id === body.myId);
+    const client = this.clients[body.myId];
 
     // Получает комнату в которой есть 2 пользователя, вы и пользователь собеседник
     let room = await this.RoomTable.createQueryBuilder('room')
@@ -183,21 +181,24 @@ export class WebsocketService {
 
   handleDisconnect(disconnectedClient: any, ...args: any) {
     // Удаляем клиента который отключился
-    this.clients = this.clients.filter(
-      (client) => client.id !== disconnectedClient.userId,
-    );
+    delete this.clients[disconnectedClient.userId];
 
-    console.log(this.clients);
-    // Создаем новый массив для отправки подключенных пользователей на клиент
-    const sendClients = this.clients.map((clientMap) => ({
-      id: clientMap.id,
-      name: clientMap.name,
-    }));
+    const sendClients = [];
 
-    //При отключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
-    for (const searchClient of this.clients) {
-      searchClient.client.send(JSON.stringify({ clients: sendClients }));
+    for (const clientId in this.clients) {
+      sendClients.push({
+        id: clientId,
+        name: this.clients[clientId].name,
+      });
     }
+
+    // При отключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
+    for (const clientId in this.clients) {
+      this.clients[clientId].client.send(
+        JSON.stringify({ clients: sendClients }),
+      );
+    }
+
     console.log('Client disconnect');
   }
 
@@ -210,29 +211,34 @@ export class WebsocketService {
     const user = await this.UserTable.findOneBy({
       id: userId,
     });
-
-    // Добавляет обьекту клиента веб сокета id, для успешной идентификации и удаления при дисконнекте
-    client['userId'] = userId;
-
-    // Если пользака нет в массиве клиентов веб сокетов, то пушим его туда
-    if (!this.clients.some((client) => client.id === user.id)) {
-      this.clients.push({
+    // Если пользака нет в обьекте клиентов веб сокетов, то добавляем его туда
+    if (!this.clients[userId]) {
+      this.clients[userId] = {
         id: userId,
         name: user.name,
         userPhoto: user.userPhoto,
         client,
+      };
+    }
+
+    // Добавляет обьекту клиента веб сокета id, для успешной идентификации и удаления при дисконнекте
+    client['userId'] = userId;
+
+    // Создаем новый массив для отправки подключенных пользователей на клиент
+    const sendClients = [];
+
+    for (const clientId in this.clients) {
+      sendClients.push({
+        id: clientId,
+        name: this.clients[clientId].name,
       });
     }
 
-    // Создаем новый массив для отправки подключенных пользователей на клиент
-    const sendClients = this.clients.map((clientMap) => ({
-      id: clientMap.id,
-      name: clientMap.name,
-    }));
-
-    //При подключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
-    for (const searchClient of this.clients) {
-      searchClient.client.send(JSON.stringify({ clients: sendClients }));
+    // При подключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
+    for (const clientId in this.clients) {
+      this.clients[clientId].client.send(
+        JSON.stringify({ clients: sendClients }),
+      );
     }
 
     for (let i = 0; i <= this.messages.length; i++) {
