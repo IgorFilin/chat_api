@@ -11,6 +11,7 @@ import { Repository } from 'typeorm';
 import * as fs from 'node:fs';
 import { Room } from './entities/room.entity';
 import { Message } from './entities/message.entity';
+import { isJSON } from 'class-validator';
 
 @WebSocketGateway()
 export class WebsocketService {
@@ -49,10 +50,18 @@ export class WebsocketService {
 
   async broadcastMessage(
     userId: any,
-    message: string | ArrayBuffer,
+    message: string | Array<[]>,
     roomId: string,
   ) {
     const user = this.clients[userId];
+
+    const maxMessageSize = 300 * 1024; // Максимальный размер сообщения для изобращения
+
+    if (Array.isArray(message) && message.length >= maxMessageSize) {
+      return; // Отклоните слишком большое сообщение
+    }
+
+    if (message === '') return; // Отклоните пустое сообщение
 
     const sendData = {
       message: message,
@@ -85,17 +94,16 @@ export class WebsocketService {
         relations: ['users'],
       }); // получаем пользаков данной комнаты.
 
-      let messageToSend;
+      let messageToSaveDB: string | Array<[]>;
 
-      if (typeof message !== 'string') {
-        const textDecoder = new TextDecoder();
-        messageToSend = textDecoder.decode(new Uint8Array(message));
+      if (Array.isArray(message)) {
+        messageToSaveDB = JSON.stringify(message);
       } else {
-        messageToSend = message.trim();
+        messageToSaveDB = message.trim();
       } // Нужно добавить поддержку отправку фото в личку
 
       const newMessage = new Message();
-      newMessage.message = messageToSend;
+      newMessage.message = messageToSaveDB;
       newMessage.name = user.name;
       newMessage.userId = user.id;
       newMessage.userPhoto = user.userPhoto;
@@ -109,7 +117,9 @@ export class WebsocketService {
       //   .getOne(); // получение пака сообщений из подтаблицы Message, если их нет то null
 
       for (let user of room.users) {
-        this.clients[user.id].client.send(messages);
+        if (this.clients[user.id]) {
+          this.clients[user.id].client.send(messages);
+        }
       }
     }
   }
@@ -172,12 +182,17 @@ export class WebsocketService {
       return;
     }
 
-    console.log(roomMessages.messages);
     for (let i = 0; i < roomMessages.messages.length; i++) {
       roomMessages.messages[i].userPhoto = await fs.promises.readFile(
         roomMessages.messages[i].userPhoto,
         'base64',
       );
+
+      if (isJSON(roomMessages.messages[i].message)) {
+        roomMessages.messages[i].message = JSON.parse(
+          roomMessages.messages[i].message,
+        );
+      }
 
       client.client.send(
         JSON.stringify({
