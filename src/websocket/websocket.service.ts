@@ -52,6 +52,7 @@ export class WebsocketService {
     userId: any,
     message: string | Array<[]>,
     roomId: string,
+    event: string,
   ) {
     const user = this.clients[userId];
 
@@ -69,6 +70,7 @@ export class WebsocketService {
       name: user.name.trim(),
       userPhoto: '',
       roomId: roomId,
+      event: event,
     };
 
     try {
@@ -126,7 +128,12 @@ export class WebsocketService {
 
   @SubscribeMessage('message')
   handleMessage(@MessageBody() body: any) {
-    this.broadcastMessage(body.id, body.message, ''); // отправляем данные всем подключенным клиентам
+    this.broadcastMessage(body.id, body.message, null, 'general'); // отправляем данные всем подключенным клиентам
+  }
+
+  @SubscribeMessage('private_message')
+  handlePrivateMessage(@MessageBody() body: any) {
+    this.broadcastMessage(body.id, body.message, body.roomId, 'private'); // Личные сообщения
   }
 
   @SubscribeMessage('all_messages_public')
@@ -175,6 +182,7 @@ export class WebsocketService {
           messages: {
             roomId: room.id,
             roomName: room.name,
+            event: 'private',
             messages: {},
           },
         }),
@@ -199,6 +207,7 @@ export class WebsocketService {
           lengthMessages: roomMessages.messages.length,
           userToAddPrivat: userToAdd.name,
           messages: {
+            event: 'private',
             roomId: room.id,
             roomName: room.name,
             ...roomMessages.messages[i],
@@ -206,11 +215,6 @@ export class WebsocketService {
         }),
       );
     }
-  }
-
-  @SubscribeMessage('private_message')
-  handlePrivateMessage(@MessageBody() body: any) {
-    this.broadcastMessage(body.id, body.message, body.roomId);
   }
 
   handleDisconnect(disconnectedClient: any, ...args: any) {
