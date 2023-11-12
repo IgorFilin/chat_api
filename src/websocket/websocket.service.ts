@@ -30,6 +30,8 @@ export class WebsocketService {
   server: Server;
   clients = {};
   messages = [];
+  publicChatEvent = 'message' as 'message';
+  privateChatEvent = 'private_message' as 'private_message';
 
   async updatedClientsAfterUpdateDataBase(user: any) {
     const searchedUser = this.clients[user.id];
@@ -52,7 +54,7 @@ export class WebsocketService {
     userId: any,
     message: string | Array<[]>,
     roomId: string,
-    event: string,
+    event: 'message' | 'private_message',
   ) {
     const user = this.clients[userId];
 
@@ -128,12 +130,17 @@ export class WebsocketService {
 
   @SubscribeMessage('message')
   handleMessage(@MessageBody() body: any) {
-    this.broadcastMessage(body.id, body.message, null, 'general'); // отправляем данные всем подключенным клиентам
+    this.broadcastMessage(body.id, body.message, null, this.publicChatEvent); // отправляем данные всем подключенным клиентам
   }
 
   @SubscribeMessage('private_message')
   handlePrivateMessage(@MessageBody() body: any) {
-    this.broadcastMessage(body.id, body.message, body.roomId, 'private'); // Личные сообщения
+    this.broadcastMessage(
+      body.id,
+      body.message,
+      body.roomId,
+      this.privateChatEvent,
+    ); // Личные сообщения
   }
 
   @SubscribeMessage('all_messages_public')
@@ -179,11 +186,12 @@ export class WebsocketService {
         JSON.stringify({
           lengthMessages: 0,
           userToAddPrivat: userToAdd.name,
+          openRoom: true,
           messages: {
             roomId: room.id,
             roomName: room.name,
-            event: 'private',
-            messages: {},
+            event: this.privateChatEvent,
+            messages: [],
           },
         }),
       );
@@ -206,8 +214,9 @@ export class WebsocketService {
         JSON.stringify({
           lengthMessages: roomMessages.messages.length,
           userToAddPrivat: userToAdd.name,
+          openRoom: true,
           messages: {
-            event: 'private',
+            event: this.privateChatEvent,
             roomId: room.id,
             roomName: room.name,
             ...roomMessages.messages[i],
