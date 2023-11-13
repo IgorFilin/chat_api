@@ -50,6 +50,80 @@ export class WebsocketService {
     }
   }
 
+  async disconnectUser(disconnectedClient: any) {
+    // Удаляем клиента который отключился
+    delete this.clients[disconnectedClient.userId];
+
+    const sendClients = [];
+
+    for (const clientId in this.clients) {
+      sendClients.push({
+        id: clientId,
+        name: this.clients[clientId].name,
+      });
+    }
+
+    // При отключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
+    for (const clientId in this.clients) {
+      this.clients[clientId].client.send(
+        JSON.stringify({ clients: sendClients }),
+      );
+    }
+
+    console.log('Client disconnect');
+  }
+
+  async connectedUser(client: any, args: any) {
+    // Вытаскием id с квери параметров
+    const url = new URLSearchParams(args[0].url);
+    const userId = url.get('/?userID');
+
+    // Ищем пользака по этому id
+    const user = await this.UserTable.findOneBy({
+      id: userId,
+    });
+    // Если пользака нет в обьекте клиентов веб сокетов, то добавляем его туда
+    if (!this.clients[userId]) {
+      this.clients[userId] = {
+        id: userId,
+        name: user.name,
+        userPhoto: user.userPhoto,
+        client,
+      };
+    }
+
+    // Добавляет обьекту клиента веб сокета id, для успешной идентификации и удаления при дисконнекте
+    client['userId'] = userId;
+
+    // Создаем новый массив для отправки подключенных пользователей на клиент
+    const sendClients = [];
+
+    for (const clientId in this.clients) {
+      sendClients.push({
+        id: clientId,
+        name: this.clients[clientId].name,
+      });
+    }
+
+    // При подключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
+    for (const clientId in this.clients) {
+      this.clients[clientId].client.send(
+        JSON.stringify({ clients: sendClients }),
+      );
+    }
+
+    for (let i = 0; i <= this.messages.length; i++) {
+      client.send(
+        JSON.stringify({
+          messages: this.messages[i],
+          lengthMessages: this.messages.length,
+        }),
+      );
+    }
+
+    console.log(`Client ${user.name} connected`);
+  }
+
   async broadcastMessage(
     userId: any,
     message: string | Array<[]>,
@@ -129,13 +203,18 @@ export class WebsocketService {
   }
 
   @SubscribeMessage('message')
-  handleMessage(@MessageBody() body: any) {
-    this.broadcastMessage(body.id, body.message, null, this.publicChatEvent); // отправляем данные всем подключенным клиентам
+  async handleMessage(@MessageBody() body: any) {
+    await this.broadcastMessage(
+      body.id,
+      body.message,
+      null,
+      this.publicChatEvent,
+    ); // отправляем данные всем подключенным клиентам
   }
 
   @SubscribeMessage('private_message')
-  handlePrivateMessage(@MessageBody() body: any) {
-    this.broadcastMessage(
+  async handlePrivateMessage(@MessageBody() body: any) {
+    await this.broadcastMessage(
       body.id,
       body.message,
       body.roomId,
@@ -144,8 +223,8 @@ export class WebsocketService {
   }
 
   @SubscribeMessage('all_messages_public')
-  handleAllMessage(@MessageBody() body: any) {
-    this.getAllMessagesPublicChat(body.id); // отправляем данные всем подключенным клиентам
+  async handleAllMessage(@MessageBody() body: any) {
+    await this.getAllMessagesPublicChat(body.id); // отправляем данные всем подключенным клиентам
   }
 
   @SubscribeMessage('open_room')
@@ -226,77 +305,11 @@ export class WebsocketService {
     }
   }
 
-  handleDisconnect(disconnectedClient: any, ...args: any) {
-    // Удаляем клиента который отключился
-    delete this.clients[disconnectedClient.userId];
-
-    const sendClients = [];
-
-    for (const clientId in this.clients) {
-      sendClients.push({
-        id: clientId,
-        name: this.clients[clientId].name,
-      });
-    }
-
-    // При отключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
-    for (const clientId in this.clients) {
-      this.clients[clientId].client.send(
-        JSON.stringify({ clients: sendClients }),
-      );
-    }
-
-    console.log('Client disconnect');
+  async handleDisconnect(disconnectedClient: any, ...args: any) {
+    await this.disconnectUser(disconnectedClient);
   }
 
   async handleConnection(client: Socket, ...args: any) {
-    // Вытаскием id с квери параметров
-    const url = new URLSearchParams(args[0].url);
-    const userId = url.get('/?userID');
-
-    // Ищем пользака по этому id
-    const user = await this.UserTable.findOneBy({
-      id: userId,
-    });
-    // Если пользака нет в обьекте клиентов веб сокетов, то добавляем его туда
-    if (!this.clients[userId]) {
-      this.clients[userId] = {
-        id: userId,
-        name: user.name,
-        userPhoto: user.userPhoto,
-        client,
-      };
-    }
-
-    // Добавляет обьекту клиента веб сокета id, для успешной идентификации и удаления при дисконнекте
-    client['userId'] = userId;
-
-    // Создаем новый массив для отправки подключенных пользователей на клиент
-    const sendClients = [];
-
-    for (const clientId in this.clients) {
-      sendClients.push({
-        id: clientId,
-        name: this.clients[clientId].name,
-      });
-    }
-
-    // При подключении определенного клиента, отправляем список всех пользователей и себя в частности, на клиент
-    for (const clientId in this.clients) {
-      this.clients[clientId].client.send(
-        JSON.stringify({ clients: sendClients }),
-      );
-    }
-
-    for (let i = 0; i <= this.messages.length; i++) {
-      client.send(
-        JSON.stringify({
-          messages: this.messages[i],
-          lengthMessages: this.messages.length,
-        }),
-      );
-    }
-
-    console.log(`Client ${user.name} connected`);
+    await this.connectedUser(client, args);
   }
 }
