@@ -4,7 +4,7 @@ import { UsersController } from './user.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { JwtModule } from '@nestjs/jwt';
-import { cookieMiddleware } from 'src/middleware/cookie.middleware';
+// import { cookieMiddleware } from 'src/middleware/cookie.middleware';
 import { EmailService } from 'src/email/email.service';
 import { StateService } from 'src/state/state.service';
 import { MemoryStoredFile, NestjsFormDataModule } from 'nestjs-form-data';
@@ -43,8 +43,9 @@ import { Message } from 'src/websocket/entities/message.entity';
     WebsocketService,
   ],
 })
-export class UsersModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(cookieMiddleware).forRoutes('*');
-  }
-}
+// export class UsersModule implements NestModule {
+//   configure(consumer: MiddlewareConsumer) {
+//     consumer.apply(cookieMiddleware).forRoutes('*');
+//   }
+// }
+export class UsersModule {}
