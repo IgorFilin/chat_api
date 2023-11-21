@@ -40,6 +40,8 @@ export class UsersController {
     res.cookie('authToken', result.token, {
       httpOnly: true,
       expires: expirationDate,
+      sameSite: 'none',
+      secure: true,
     });
     return res.send(result);
   }
