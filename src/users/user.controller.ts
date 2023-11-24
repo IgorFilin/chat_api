@@ -28,6 +28,7 @@ export class UsersController {
     } else {
       return res.status(401).send({ message: result.message });
     }
+
   }
 
   @Post('login')
@@ -40,6 +41,7 @@ export class UsersController {
     res.cookie('authToken', result.token, {
       httpOnly: true,
       expires: expirationDate,
+      domain: 'filin-hub.online',
       // sameSite: 'none',
       // secure: true,
     });
